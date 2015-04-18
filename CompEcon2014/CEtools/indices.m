@@ -1,0 +1,11 @@
+function [i1,i2,i3,i4,i5] = indices(n1,n2,n3,n4,n5)
+if nargin<2, n2 = 1; end
+if nargin<3, n3 = 1; end
+if nargin<4, n4 = 1; end
+if nargin<5, n5 = 1; end
+[i1,i2,i3,i4,i5] = ndgrid([1:n1]',[1:n2]',[1:n3]',[1:n4]',[1:n5]');
+i1 = i1(:); 
+i2 = i2(:);
+i3 = i3(:);
+i4 = i4(:);
+i5 = i5(:);
