@@ -1,3 +1,9 @@
+# TODO: still need to write fund, minterp
+# TODO: also need splidop, lindop
+# TODO: funeval fails for scalar input and does weird thing for 1-element
+#       vector input
+
+
 const BASE_TYPES = [:spli, :cheb, :lin]
 
 base_exists(s::Symbol) = s in BASE_TYPES
@@ -37,7 +43,7 @@ function gridmake(arrays::Vector...)
     for i=1:n
         arr = arrays[i]
         outer = repititions[i]
-        inner = int(floor(l / (outer * size(arr, 1))))
+        inner = floor(Int, l / (outer * size(arr, 1)))
         out[:, i] = repeat(arrays[i], inner=[inner], outer=[outer])
     end
     return out
@@ -97,15 +103,15 @@ function cckronxi(b::Vector{Any}, c, ind=1:length(b))
 end
 
 # cdprodx.m -- DONE
-cdprodx(b::Matrix, c, ind=1:prod(size(b))) = b*c  # 39
+cdprodx{T<:Number}(b::Matrix{T}, c, ind=1:prod(size(b))) = b*c  # 39
 
 
 # TODO: this should be a fold
-function cdprodx(b::Vector{Any}, c, ind=1:prod(size(b)))
+function cdprodx(b::Array{Any}, c, ind=1:prod(size(b)))
     d = length(ind)
     a = b[ind[d]]
     for i=d-1:-1:1
-        a = dprod(b[ind[i]], 1)
+        a = dprod(b[ind[i]], a)
     end
     a = a * c
 end
@@ -129,6 +135,39 @@ function cckronx(b::Vector{Any}, c, ind=1:prod(size(b)))
     end  # 38
     reshape(z, mm, size(c, 2))  # 39
 end
+
+# nodeunif.m -- DONE
+function nodeunif(n::Int, a::Int, b::Int)
+    x = linspace(a, b, n)
+    return x, x
+end
+
+function nodeunif(n::Array, a::Array, b::Array)
+    d = length(n)
+    xcoord = cell(d)
+    for k=1:d
+        xcoord[k] = linspace(a[k], b[k], n[k])
+    end
+    return gridmake(xcoord...), xcoord
+end
+
+
+
+function squeeze_trail(x::Array)
+    sz = size(x)
+    squeezers = Int[]
+    n = length(sz)
+    for i=n:-1:1
+        if sz[i] == 1
+            push!(squeezers, i)
+        else
+            break
+        end
+    end
+    squeeze(x, tuple(squeezers...))
+end
+
+
 
 
 # -------------------- #
@@ -186,6 +225,26 @@ function fundef(foo...)
 end
 
 
+# fundefn.m
+function fundefn(basistype::Symbol, n, a, b, order=3)
+    d = length(n)
+    length(a) != d && error("a must be same dimension as n")
+    length(b) != d && error("b must be same dimension as n")
+    any(a .> b) && error("left endpoints must be less than right endpoints")
+    any(n .< 2) && error("n(i) must be greater than 1")
+
+    params = cell(1, d)
+    if basistype == :cheb
+        for i=1:d params[i] = Any[:cheb, n[i], a[i], b[i]] end
+    elseif basistype == :spli
+        for i=1:d params[i] = Any[:spli, [a[i], b[i]], n[i]-order+1, order] end
+    elseif basistype == :lin
+        for i=1:d params[i] = Any[:lin, [a[i], b[i]], n[i]] end
+    end
+
+    fundef(params...)
+end
+
 # funnode.m -- DONE
 function funnode(basis::Dict)
     d = basis[:d]  # 18
@@ -233,7 +292,7 @@ function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
 
     # 83-89
     if bformat == :none
-        if isa(x, Vector{Any})
+        if isa(x, Array{Any})
             bformat = :tensor
         else
             bformat = :direct
@@ -242,10 +301,10 @@ function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
 
     # 91-101
     if d > 1
-        if !(isa(x, Vector{Any})) && bformat == :tensor
+        if !(isa(x, Array{Any})) && bformat == :tensor
             error("Must pass a cell array to form a tensor format basis")
         end
-        if isa(x, Vector{Any}) && bformat == :direct
+        if isa(x, Array{Any}) && bformat == :direct
             # it would be more efficient in this case to
             # use the tensor form to compute the bases and then
             # to use indexing to expand to the direct form
@@ -254,7 +313,7 @@ function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
     end
 
     #103-107
-    B[:format] = is(x, Vector{Any}) ? :tensor : :direct
+    B[:format] = is(x, Array{Any}) ? :tensor : :direct
 
     if B[:format] == :tensor  # 111
         for j=1:d
@@ -286,7 +345,7 @@ function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
 
             #131-135
             if length(orderj) == 1
-                B[:vals][1, j] = CompEcon.evalbase(basis[:basetype][j],
+                B[:vals][1, j] = evalbase(basis[:basetype][j],
                                           basis[:parms][j]..., x[:, j], orderj)[1]
             else
                 B[:vals][orderj-minorder[j]+1, j] =
@@ -301,7 +360,7 @@ function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
     if size(B[:vals], 2) == 1  # 1 dimension
         B[:format] = :expanded
         B[:order] = order
-        B[:vals] = B[:vals][order + (1 - minimum(order))]
+        B[:vals] = B[:vals][collect(order + (1 - minimum(order)))]
         return B
     end
 
@@ -309,7 +368,7 @@ function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
     if bformat == :expanded
         B = funbconv(B, order, :expanded)
     elseif bformat == :direct
-        if isa(x, Vector{Any})
+        if isa(x, Array{Any})
             B = funbconv(B, order, :direct)
         end
     end
@@ -336,6 +395,13 @@ function lookup(tabvals::Vector, x::Vector, endadj=0)
     ind
 end
 
+# funfitf.m -- DONE
+function funfitf(basis, f::Function, args...)
+    x = funnode(basis)[1]
+    y = f(x, args...)
+    funfitxy(basis, x, y)[1]
+end
+
 # funfitxy.m -- DONE
 function funfitxy(basis, x, y)
     m = size(y, 1)
@@ -360,7 +426,7 @@ function funfitxy(basis, x, y)
             c = B[:vals][1] \ y  # 74
         end
 
-    elseif isa(x, Vector{Any})  # evaluate at grid points
+    elseif isa(x, Array{Any})  # evaluate at grid points
         # 77
         mm = 1
         for i=1:size(x, 2)
@@ -376,7 +442,7 @@ function funfitxy(basis, x, y)
         size(x, 1) != m && error("x and y are incompatible")
 
         B = funbasex(basis, x, 0, :expanded)
-        c = B[:vals] \ y
+        c = B[:vals][1] \ y
     end
     return c, B
 end
@@ -403,7 +469,7 @@ function funeval(c, basis, B, order=0)
     end
 
     # now we we have a basis structure
-    if isa(B[:vals], Vector{Any})
+    if isa(B[:vals], Array{Any})
         y = B[:format] == :tensor   ? funeval1(c, B, order) :  # 75
             B[:format] == :direct   ? funeval2(c, B, order) :  # 77
             B[:format] == :expanded ? funeval3(c, B, order) :  # 79
@@ -432,7 +498,7 @@ function funeval1(c, B, order=fill(0, 1, size(B[:order], 2)))
     for i=1:kk
         f[:, :, i] = ckronx(B.vals, c, order[i, :])  # 102
     end
-    return f
+    return squeeze_trail(f)
 end
 
 # inside funeval.m. Evaluates according to ``:direct`` format -- DONE
@@ -444,15 +510,15 @@ function funeval2(c, B, order=fill(0, 1, size(B[:order], 2)))
     f = zeros(size(B[:vals][1], 1), size(c, 2), kk)  # 116
 
     for i=1:kk
-        f[:, :, i] = cdprodx(B.vals, c, order[i, :])  # 118
+        f[:, :, i] = cdprodx(B[:vals], c, order[i, :])  # 118
     end
-    return f
+    return squeeze_trail(f)
 end
 
 # inside funeval.m. Evaluates according to ``:expanded`` format -- DONE
 function funeval3(c, B, order=fill(0, 0, 0))
     if isempty(order)
-        if isa(B[:vals], Vector{Any})
+        if isa(B[:vals], Array{Any})
             kk = length(B[:vals])  # 126
             order = 1:kk'  # 127
         else
@@ -463,11 +529,11 @@ function funeval3(c, B, order=fill(0, 0, 0))
         kk = size(order, 1)  # 133
     end
 
-    if isa(B[:vals], Vector{Any})
+    if isa(B[:vals], Array{Any})
         nx = size(B[:vals][1], 1)
         f = zeros(nx, size(c, 2), kk)
         for i=1:kk
-            # determine which element of B[:vals] is the desired basis, if any
+            # 140 determine which element of B[:vals] is the desired basis
             ii = Int[]
             for row=1:size(B[:order], 1)
                 r = B[:order][row, :]
@@ -476,28 +542,27 @@ function funeval3(c, B, order=fill(0, 0, 0))
                 end
             end
 
-            if length(ii) > 1
-                warn("redundant request in funeval3")
-                ii = ii[1]
-            end
-             f[:, :, i] = B[:vals][ii]*c
+            # 141-143
+            isempty(ii)  && error("Requested basis matrix is not available")
+
+            length(ii) > 1 &&  warn("redundant request in funeval3")  # 145
+
+            # NOTE: must do even when length[i] == 1 b/c want element of cell
+            #       and indexing cell with vector in julia gives cell instead
+            #       of the element
+            ii = ii[1]  # 146
+
+            f[:, :, i] = B[:vals][ii]*c  #148
          end
      else
-        nx = size(B[:vals], 1)
-        f = zeros(nx, size(c, 2), kk)
+        nx = size(B[:vals], 1)  # 151
+        f = zeros(nx, size(c, 2), kk)  # 152
         for i=1:kk
-            f[:, :, i] = B[:vals]*c
+            f[:, :, i] = B[:vals]*c  # 154
         end
     end
 
-    return f
-end
-
-# funfitf.m -- DONE
-function funfitf(basis, f::Function, args...)
-    x = funnode(basis)
-    y = f(x, args...)
-    funfitxy(basis, x, y)[1]
+    return squeeze_trail(f)
 end
 
 # fund.m
@@ -625,15 +690,41 @@ function chebnode(n::Int, a::Real, b::Real, nodetype=0)
 end
 
 
-# chebdop.m
+# chebdop.m -- DONE
 function chebdop(n, a, b, order=1)
     if order > 0
-        # Use previously stored values for order=1 and order=2
-        # this speeds up calculations considerably with repeated calls
+        # TODO: figure out some caching mechanism that avoids globals
+        D = cell(max(2, order), 1)  # 49
+        i = repeat(collect(1:n), outer=[1, n]); j = i'  # 50
 
-        # TODO: come back here when I need this.
+        # 51
+        inds = find((rem(i + j, 2) .== 1) & (j.>i))
+        r, c = similar(inds), similar(inds)
+        for i in 1:length(inds)
+            r[i], c[i] = ind2sub((n, n), inds[i])
+        end
+
+        d = sparse(r, c, (4/(b-a)) * (vec(j[1, c])-1), n-1, n)  # 52
+        d[1, :] ./= 2  # 53
+        D[1] = d  # 54
+        for ii=2:max(2, order)
+            D[ii] = d[1:n-ii, 1:n-ii+1] * D[ii-1]  # 56
+        end
+    else
+        D = cell(abs(order), 1)  # 64
+        nn = n - order  # 65
+        i = (0.25 * (b - a)) ./(1:nn)  # 66
+        d = sparse(vcat(1:nn, 1:nn-2), vcat(1:nn, 3:nn), vcat(i, -i[1:nn-2]),
+                   nn, nn)  # 67
+        d[1, 1] *= 2  # 68
+        d0 = ((-1).^(0:nn-1)') .* sum(d, 1)  # 69
+        D[1] = sparse(vcat(d0[1:n]', d[1:n, 1:n]))  # 70
+        for ii=-2:-1:order
+            ind = 1:n-ii-1
+            D[-ii] = sparse(vcat(d0[ind]', d[ind, ind]) * D[-ii-1])
+        end
     end
-    D, n, a, b, parms
+    D, n-order, a, b, Any[n, a, b]
 end
 
 
@@ -651,7 +742,7 @@ function chebbase(n, a, b, x=chebnode(n, a, b, 1), order=0, nodetype=1)
 
     if length(order) == 1
         if order != 0
-            D = chebdop(n, a, b, order)
+            D = chebdop(n, a, b, order)[1]
             B = bas[:, 1:n-order]*D[abs(order)]
         else
             B = bas
@@ -659,8 +750,8 @@ function chebbase(n, a, b, x=chebnode(n, a, b, 1), order=0, nodetype=1)
     else
         B = cell(length(order))
         maxorder = maximum(order)
-        if maxorder > 0 D = chebdop(n, a, b, maxorder) end
-        if maxorder < 0 I = chebdop(n, a, b, minorder) end
+        if maxorder > 0 D = chebdop(n, a, b, maxorder)[1] end
+        if maxorder < 0 I = chebdop(n, a, b, minorder)[1] end
         for ii=1:length(order)
             if order[ii] == 0
                 B[ii] = bas[:, 1:n]
@@ -740,7 +831,7 @@ function splidop(breaks, evennum=0, k=3, order=1)
     kk = max(k - 1, k - order - 1)
     augbreaks = vcat(fill(breaks[1], kk), breaks, fill(breaks[end], kk))
 
-    D = cell(abs(order))
+    D = cell(abs(order), 1)
     if order > 0  # derivative
         temp = k ./ (augbreaks[k+1:n+k-1] - augbreaks[1:n-1])
         D[1] = spdiags([-temp temp], 0:1, n-1, n)  # TODO: pick up here
@@ -896,9 +987,3 @@ function linbase(breaks, evennum=0, x=breaks, order=0)
     B = sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
     return B, x
 end
-
-
-
-
-# TODO: still need to write fund
-# TODO: also need `lin` family: minterp
