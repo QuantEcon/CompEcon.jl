@@ -143,8 +143,6 @@ function nodeunif(n::Array, a::Array, b::Array)
     return gridmake(xcoord...), xcoord
 end
 
-
-
 function squeeze_trail(x::Array)
     sz = size(x)
     squeezers = Int[]
@@ -157,4 +155,25 @@ function squeeze_trail(x::Array)
         end
     end
     squeeze(x, tuple(squeezers...))
+end
+
+
+# lookup.m -- DONE
+function lookup(tabvals::Vector, x::Vector, endadj=0)
+    n = prod(size(x))
+    m = length(tabvals)
+    if endadj >= 2
+        m = m - sum(tabvals .== tabvals[end])
+    end
+
+    ind = sortperm(vcat(tabvals[1:m], x))
+    temp = find(ind .>m)
+    j = ind[temp] - m
+    ind = reshape(temp .- (1:n), size(x)...)
+    ind[j] = ind[:]
+
+    if endadj == 1 || endadj == 3
+        ind[ind .== 0] = sum(tabvals .== tabvals[1])
+    end
+    ind
 end
