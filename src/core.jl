@@ -444,7 +444,7 @@ function funfitxy(basis::Basis, x, y)
     size(x, 1) != m && error("x and y are incompatible")
 
     # compute expanded basis structure, get cofs, and return
-    bs = BasisStructure(basis, x, 0, Expanded)
+    bs = BasisStructure(basis, x, 0, Expanded())
     c = get_coefs(basis, bs, y)
     c, bs
 end
@@ -454,6 +454,12 @@ function funfitf(basis::Basis, f::Function, args...)
     y = f(x, args...)
     funfitxy(basis, x, y)[1]
 end
+
+funeval(c, basis::Basis, x::Real, order=0) =
+    funeval(c, basis, fill(x, 1, 1), order)
+
+funeval(c, basis::Basis, x::Vector, order=0) =
+    funeval(c, basis, x[:, :], order)
 
 function funeval(c, basis::Basis, x::Matrix, order=0)
     d = ndims(basis)
@@ -500,7 +506,7 @@ function funeval(c, bs::BasisStructure{Direct},
     return squeeze_trail(f)
 end
 
-function funeval(c, bs::BasisStructure{Tensor},
+function funeval(c, bs::BasisStructure{Expanded},
                  order::Matrix{Int}=fill(0, 1, size(bs.order, 2)))  # funeval3
 
     if isempty(order)
@@ -545,7 +551,7 @@ function funeval(c, bs::BasisStructure{Tensor},
         nx = size(bs.vals, 1)  # 151
         f = zeros(nx, size(c, 2), kk)  # 152
         for i=1:kk
-            f[:, :, i] = bs.vals*c  # 154
+            f[:, :, i] = bs.vals[1]*c  # 154
         end
     end
 
