@@ -2,8 +2,6 @@
 # Julian API #
 # ---------- #
 
-include("original/spli.jl")
-
 function Basis(::Spline, breaks::Vector, evennum::Int, k::Int)
     # error handling
     k < 0 && error("spline order must be positive")
@@ -28,6 +26,13 @@ function Basis(::Spline, breaks::Vector, evennum::Int, k::Int)
     Basis(Spline(), n, a, b, SplineParms(breaks, evennum, k))
 end
 
+# define methods for SplineParms type
 Basis(p::SplineParms) = Basis(Spline(), p.breaks, p.evennum, p.k)
 
 nodes(p::SplineParms) = splinode(p.breaks, p.evennum, p.k)
+
+derivative_op(p::SplineParms, order=1) =
+    splidop(p.breaks, p.evennum, p.k, order)
+
+evalbase(p::SplineParms, x=nodes(p), order=0) =
+    splibase(p.breaks, p.evennum, p.k, x, order)

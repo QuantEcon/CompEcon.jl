@@ -101,7 +101,8 @@ funbase(basis::Dict, x=funnode(basis)[1],
 
 
 # funbasex.m -- DONE
-function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
+function funbasex(basis::Dict{Symbol}, x=funnode(basis)[1], order=0,
+                  bformat::Symbol=:none)
     d = length(basis[:n])  # 59
     if d > 1 && size(order, 2) == 1  # 62
         order = order * ones(Int, 1, d)  # 63
@@ -205,26 +206,6 @@ function funbasex(basis, x=funnode(basis)[1], order=0, bformat::Symbol=:none)
         end
     end
     return B
-end
-
-# lookup.m -- DONE
-function lookup(tabvals::Vector, x::Vector, endadj=0)
-    n = prod(size(x))
-    m = length(tabvals)
-    if endadj >= 2
-        m = m - sum(tabvals .== tabvals[end])
-    end
-
-    ind = sortperm(vcat(tabvals[1:m], x))
-    temp = find(ind .>m)
-    j = ind[temp] - m
-    ind = reshape(temp .- (1:n), size(x)...)
-    ind[j] = ind[:]
-
-    if endadj == 1 || endadj == 3
-        ind[ind .== 0] = sum(tabvals .== tabvals[1])
-    end
-    ind
 end
 
 # funfitf.m -- DONE

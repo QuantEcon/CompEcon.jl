@@ -81,7 +81,7 @@ function splibase(breaks::Vector, evennum, k=3, x=splinode(breaks, evennum, k),
             bas[:, jj+1] = (x - b0) .* temp + bas[:, jj+1]  # 83
             bas[:, jj] = (b1-x) .* temp  # 84
         end
-        # bas not contains the order `j` spline basis
+        # bas now contains the order `j` spline basis
         ii = find((k-j) .== order)  # 87
         if !(isempty(ii))  # 88
             ii = ii[1]  # 89
