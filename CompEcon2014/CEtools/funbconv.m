@@ -40,11 +40,12 @@ if any(min(order,[],1)<b.order)% | any(max(order)>b.maxorder)
   error('Order of derivative operators exceeds those of basis');
 end
 
+% do this if you want to end up in expanded form (from tensor or direct)
 if strcmp(format,'expanded')
   B.vals=cell(numbas,1);
   B.order=order;
   B.format=format;
-  
+
   if strcmp(b.format,'tensor')
     m=1;n=1;
     for j=1:d
@@ -71,6 +72,8 @@ if strcmp(format,'expanded')
   else
     error('Improper basis format')
   end
+
+% do this if you want to end up in direct form (from tensor)
 elseif strcmp(format,'direct') && strcmp(b.format,'tensor')
   B.vals=cell(numbas,d);
   B.order=order;

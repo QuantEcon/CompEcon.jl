@@ -5,21 +5,6 @@
 #       the same thing out
 
 #=
-Functions from original/core.jl that need to be translated:
-
-- fundef -- DONE
-- fundefn -- DONE
-- funnode -- DONE
-- funbase -- DONE
-- funbasex -- DONE
-- funfitxy -- DONE
-- funfitf  -- DONE
-- funeval -- DONE
-- funeval1 -- DONE
-- funeval2 -- DONE
-- funeval3 -- DONE
-- funbconv -- DONE
-
 Note that each subtype of `BT<:BasisFamily` (with associated `PT<:BasisParam`)
 will define the following constructor methods:
 
@@ -114,13 +99,13 @@ Basis(bt::BasisFamily, n::Int, a::Float64, b::Float64, parms::BasisParms) =
 Basis{BT<:BasisFamily}(::Type{BT}, args...) = Basis(BT(), args...)
 
 # combining basis
-function Basis(bs::Basis...)  # fundef-esque method
+function Basis(b1::Basis, bs::Basis...)  # fundef-esque method
     Nb = length(bs)
-    basistype = vcat([bs[i].basistype for i=1:Nb]...)
-    n = vcat([bs[i].n for i=1:Nb]...)
-    b = vcat([bs[i].b for i=1:Nb]...)
-    a = vcat([bs[i].a for i=1:Nb]...)
-    parms = vcat([bs[i].parms for i=1:Nb]...)
+    basistype = vcat(b1.basistype, [bs[i].basistype for i=1:Nb]...)
+    n = vcat(b1.n, [bs[i].n for i=1:Nb]...)
+    b = vcat(b1.b, [bs[i].b for i=1:Nb]...)
+    a = vcat(b1.a, [bs[i].a for i=1:Nb]...)
+    parms = vcat(b1.parms, [bs[i].parms for i=1:Nb]...)
     N = length(n)
     Basis{N}(basistype, n, a, b, parms)
 end
@@ -128,7 +113,8 @@ end
 Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
 
 # construct basis out of multiple Params
-Basis(ps::AnyParm...) = Basis(Basis[Basis(p) for p in ps]...)
+Basis(p::AnyParm, ps::AnyParm...) = Basis(Basis(p),
+                                          Basis[Basis(p) for p in ps]...)
 
 
 # convert old API to new API
@@ -192,9 +178,8 @@ Base.ndims(bs::BasisStructure) = size(bs.order, 2)
 # TODO: determine if I want `size(bs, i::Int)` methods to do
 # `prod([size(b.vals[1,j], i) for j=1:ndims(b)])`
 
-function check_convert{BST<:AbstractBasisStructureRep}(::Type{BST},
-                                                       bs::BasisStructure,
-                                                       order)
+# common checks for all convert methods
+function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
     d = ndims(bs)
     numbas, d1 = size(bs.order)
 
@@ -210,7 +195,7 @@ end
 
 # funbconv from direct to expanded
 function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
-                      order=fill(0, 1, size(bs.order), 2))
+                      order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bst, bs, order)
     n = prod([size(bs.vals[1, j], 2) for j=1:d])
 
@@ -228,7 +213,7 @@ end
 
 # funbconv from tensor to expanded
 function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Tensor},
-                      order=fill(0, 1, size(bs.order), 2))
+                      order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bst, bs, order)
     m = prod([size(bs.vals[1, j], 1) for j=1:d])
     n = prod([size(bs.vals[1, j], 2) for j=1:d])
@@ -308,6 +293,7 @@ function check_basis_structure(basis::Basis, x, order, bformat)
     return d, m, order, minorder, numbases
 end
 
+# quick function to take order+vals and return expanded form for 1d problems
 function to_expanded(out_order::Matrix{Int}, vals::Array)
     vals = vals[collect(out_order + (1 - minimum(out_order)))]
     BasisStructure{Expanded}(out_order, vals)
@@ -315,9 +301,9 @@ end
 
 # method to construct BasisStructure in direct or expanded form based on
 # a matrix of `x` values
-function BasisStructure{T<:Union(Direct, Expanded)}(basis::Basis,
+function BasisStructure(basis::Basis,
                         x::Array{Float64}=nodes(basis)[1], order=0,
-                        bformat::T=Direct())  # funbasex
+                        bformat::Direct=Direct())  # funbasex
 
     d, m, order, minorder, numbases = check_basis_structure(basis, x, order,
                                                             bformat)
@@ -351,15 +337,20 @@ function BasisStructure{T<:Union(Direct, Expanded)}(basis::Basis,
     end
 
     # construct Direct Format
-    B = BasisStructure{Direct}(out_order, vals)
-
-    if isa(bformat, Expanded)
-        B = convert(Expanded, B, order)
-    end
-
-    return B
+    BasisStructure{Direct}(out_order, vals)
 end
 
+function BasisStructure(basis::Basis,
+                        x::Array{Float64}=nodes(basis)[1], order=0,
+                        bformat::Expanded=Expanded())  # funbasex
+    # create direct form, then convert to expanded
+    convert(Expanded, BasisStructure(basis, x, order, Direct()))
+end
+
+# TODO: figure out a better way than just x::Array{Any} to do this,
+#       Maybe x::Union(Array{Vector}, Union(Any)) because nodes(b)[2]
+#       will Array{Vector}. Seems foolish to throw away that type information
+#       just so dispatch will reach this function
 function BasisStructure(basis::Basis, x::Array{Any}, order=0,
                         bformat::Tensor=Tensor())  # funbasex
     d, m, order, minorder, numbases = check_basis_structure(basis, x, order,
@@ -379,15 +370,15 @@ function BasisStructure(basis::Basis, x::Array{Any}, order=0,
 
         #118-122
         if length(orderj) == 1
-            vals[1, j] = evalbase(basis.parms[j], x[j], orderj)
+            vals[1, j] = evalbase(basis.parms[j], x[j], orderj)[1]
         else
             vals[orderj-minorder[j]+1, j] = evalbase(basis[:parms][j], x[j],
-                                                     orderj)
+                                                     orderj)[1]
         end
     end
 
     size(vals, 2) == 1 ? to_expanded(order, vals) :
-                         BasisStructure{Tensor}(our_order, vals)
+                         BasisStructure{Tensor}(out_order, vals)
 end
 
 # add method to funbasex that calls the above constructors
@@ -412,6 +403,7 @@ get_coefs(basis::Basis, bs::BasisStructure{Direct}, y) =
 
 get_coefs(basis::Basis, bs::BasisStructure{Expanded}, y) = bs.vals[1] \ y
 
+# common checks to be run at the top of each funfit
 function check_funfit(basis::Basis, x, y)
     m = size(y, 1)
     length(basis) > m && error("Can't be more basis funcs than points in y")
@@ -427,6 +419,7 @@ end
 function funfitxy(basis::Basis, x::Array{Any}, y)
     m = check_funfit(basis, x, y)
 
+    # additional checks for cell array
     mm = prod([size(x[i], 1) for i=1:size(x, 2)])
     mm != m && error("x and y are incompatible")
 
@@ -441,6 +434,8 @@ end
 function funfitxy(basis::Basis, x, y)
     # check input sizes
     m = check_funfit(basis, x, y)
+
+    # additional check
     size(x, 1) != m && error("x and y are incompatible")
 
     # compute expanded basis structure, get cofs, and return
@@ -455,9 +450,12 @@ function funfitf(basis::Basis, f::Function, args...)
     funfitxy(basis, x, y)[1]
 end
 
+# funeval wants to evaluate at a matrix. As a stop-gap until I find some
+# time, this method makes a scalar x into a 1x1 matrix
 funeval(c, basis::Basis, x::Real, order=0) =
     funeval(c, basis, fill(x, 1, 1), order)
 
+# similar to above for vectors (size will be nx1)
 funeval(c, basis::Basis, x::Vector, order=0) =
     funeval(c, basis, x[:, :], order)
 

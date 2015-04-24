@@ -1,6 +1,6 @@
 module CompEcon
 
-export golden
+export golden_method
 
 # types
 export BasisFamily, Cheb, Lin, Spline, Basis,

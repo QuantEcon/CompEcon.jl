@@ -1,6 +1,6 @@
 %% FUNBASEX
 %
-%  Creates basis structures for function evaluation (Use funbase to obtain 
+%  Creates basis structures for function evaluation (Use funbase to obtain
 %  single basis matrices)
 %
 %  Usage
@@ -20,7 +20,7 @@
 %  B-Structure
 %    vals     : cell array containing basis data (see exception below)
 %    format   : 'tensor', 'direct', 'expanded'
-%    order    : orders of differentiation ('expanded' format) or smallest 
+%    order    : orders of differentiation ('expanded' format) or smallest
 %               orders of differentiation and number of bases ('tensor' and 'direct' formats)
 %  Note
 %    Order Determines the # of basis matrices created:
@@ -100,6 +100,7 @@ if d>1
   end
 end
 
+% notice we will be doing either tensor or direct here, _not_ expanded
 if isa(x,'cell')
   B.format = 'tensor';
 else
@@ -129,6 +130,9 @@ switch B.format
         orderj = order(1,j);
       end
       if length(orderj)==1
+        % notice need to do this feval + splice string names together to get
+        % function names. multiple dispatch takes care of this for us -- we just
+        % need evalbase
         B.vals{1,j} = feval([basis.bastype{j} 'base'],basis.parms{j}{:},x(:,j),orderj);
       else
         B.vals(orderj-minorder(j)+1,j) = feval([basis.bastype{j} 'base'],basis.parms{j}{:},x(:,j),orderj);
@@ -147,6 +151,8 @@ end
 % Create expanded format
 switch bformat
   case 'expanded'
+    % funbconv converts from one basis representation to another. In julia we
+     % have a function for that -- it's called `convert`
     B = funbconv(B,order,'expanded');
   case 'direct'
     if isa(x,'cell'), B = funbconv(B,order,'direct'); end

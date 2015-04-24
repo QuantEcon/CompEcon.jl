@@ -1,4 +1,4 @@
-function golden(f::Function, a::AbstractVector, b::AbstractVector;
+function golden_method(f::Function, a::AbstractVector, b::AbstractVector;
                 tol=eps()/10, maxit=1000)
 
     α1 = (3 - sqrt(5)) / 2
@@ -24,7 +24,7 @@ function golden(f::Function, a::AbstractVector, b::AbstractVector;
         f2 = f(x2)
     end
 
-    it >= maxit && warn("`golden`: maximum iterations exceeded")
+    it >= maxit && warn("`golden_method`: maximum iterations exceeded")
 
     i = f2 .> f1
     x1[i] = x2[i]
@@ -33,7 +33,7 @@ function golden(f::Function, a::AbstractVector, b::AbstractVector;
     x1, f1
 end
 
-function golden(f::Function, a::Real, b::Real; tol=eps()/10, maxit=1000)
-    x1, f1 = golden(f, [a], [b]; tol=tol, maxit=maxit)
+function golden_method(f::Function, a::Real, b::Real; tol=eps()/10, maxit=1000)
+    x1, f1 = golden_method(f, [a], [b]; tol=tol, maxit=maxit)
     x1[1], f1[1]
 end
