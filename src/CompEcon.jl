@@ -1,5 +1,7 @@
 module CompEcon
 
+using Compat
+
 export golden_method
 
 # types
@@ -10,7 +12,7 @@ export BasisFamily, Cheb, Lin, Spline, Basis,
 
 # functions
 export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
-       derivative_op, funbasex
+       derivative_op, funbasex, row_kron
 
 
 # old API only
