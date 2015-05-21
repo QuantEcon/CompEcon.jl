@@ -68,14 +68,6 @@ end
 function row_kron{S,T}(A::SparseMatrixCSC{S}, B::SparseMatrixCSC{T})
     nobsa, na = size(A)
     nobsb, nb = size(B)
-    out = spzeros(promote_type(S, T), nobsa, na*nb)
-    row_kron!(A, B, out)
-    out
-end
-
-function row_kron2{S,T}(A::SparseMatrixCSC{S}, B::SparseMatrixCSC{T})
-    nobsa, na = size(A)
-    nobsb, nb = size(B)
 
     # doing this on the transpose so the row indices will be sorted
     cols_a, rows_a, vals_a = findnz(A')
