@@ -68,9 +68,50 @@ end
 function row_kron{S,T}(A::SparseMatrixCSC{S}, B::SparseMatrixCSC{T})
     nobsa, na = size(A)
     nobsb, nb = size(B)
-    out = spzeros(promote_type(S, T), nobsa, na*nb)
-    row_kron!(A, B, out)
-    out
+
+    # doing this on the transpose so the row indices will be sorted
+    cols_a, rows_a, vals_a = findnz(A')
+    cols_b, rows_b, vals_b = findnz(B')
+
+    # nnza, nnzb = map(length, (ra, rb))
+
+    prev_last_a = searchsortedfirst(rows_a, 0)
+    prev_last_b = searchsortedfirst(rows_b, 0)
+
+    I = Array(Int64, 0)
+    J = Array(Int64, 0)
+    V = Array(promote_type(S, T), 0)
+
+    for t in 1:nobsa
+        next_last_a = searchsortedfirst(rows_a, t+1)
+        next_last_b = searchsortedfirst(rows_b, t+1)
+        these_cols_a = cols_a[prev_last_a:next_last_a-1]
+        these_cols_b = cols_b[prev_last_b:next_last_b-1]
+
+        these_vals_a = vals_a[prev_last_a:next_last_a-1]
+        these_vals_b = vals_b[prev_last_b:next_last_b-1]
+
+
+        for ia in 1:length(these_cols_a)
+            ca = these_cols_a[ia]
+            for ib in 1:length(these_cols_b)
+                cb = these_cols_b[ib]
+                push!(I, t)
+                push!(J, nb*(ca-1) + cb)
+                push!(V, these_vals_a[ia] * these_vals_b[ib])
+            end
+        end
+
+
+        prev_last_a = next_last_a
+        prev_last_b = next_last_b
+
+        # # cut down ra, rb so search sorted doesn't have to work as hard
+        # rows_a = rows_a[prev_last_a-1:end]
+        # rows_b = rows_b[prev_last_a-1:end]
+    end
+
+    sparse(I, J, V, nobsa, na*nb)
 end
 
 const dprod = row_kron
