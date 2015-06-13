@@ -47,12 +47,12 @@ function row_kron!(A::AbstractMatrix, B::AbstractMatrix, out::AbstractMatrix)
     nobsa, na = size(A)
     nobsb, nb = size(B)
 
-    @assert nobsa == nobsb "A and B must have same number of rows"
+    nobsa != nobsb && error("A and B must have same number of rows")
 
     # fill in each element. To do this we make sure we access each array
     # consistent with its column major memory layout.
-    for ia=1:na, ib=1:nb, t=1:nobsa
-        @inbounds out[t, nb*(ia-1) + ib] = A[t, ia] * B[t, ib]
+    @inbounds for ia=1:na, ib=1:nb, t=1:nobsa
+        out[t, nb*(ia-1) + ib] = A[t, ia] * B[t, ib]
     end
     out
 end

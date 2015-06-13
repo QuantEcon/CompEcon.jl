@@ -192,6 +192,8 @@ function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
     return d, numbas, d1
 end
 
+Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct}, args...) = bs
+
 
 # funbconv from direct to expanded
 function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
@@ -504,6 +506,8 @@ function funeval(c, bs::BasisStructure{Direct},
     return squeeze_trail(f)
 end
 
+# TODO: bugs here. Need to find a better way to replicate the `iscell`
+#       calls in Matlab because bs.vals is never and Array{Any}
 function funeval(c, bs::BasisStructure{Expanded},
                  order::Matrix{Int}=fill(0, 1, size(bs.order, 2)))  # funeval3
 
