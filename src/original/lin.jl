@@ -34,8 +34,8 @@ function linbase(breaks, evennum=0, x=breaks, order=0)
 
     # 46-49
     if order != 0
-        D, n, a, b, parms = lindop(breaks, evennum, order)
-        B = linbase(parms..., x)[1] * D[end]
+        D, n, a, b, params = lindop(breaks, evennum, order)
+        B = linbase(params..., x)[1] * D[end]
         return B, x
     end
 

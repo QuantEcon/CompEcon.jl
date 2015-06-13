@@ -23,16 +23,16 @@ function Basis(::Spline, breaks::Vector, evennum::Int, k::Int)
     n = length(breaks) + k - 1
     a = breaks[1]
     b = breaks[end]
-    Basis(Spline(), n, a, b, SplineParms(breaks, evennum, k))
+    Basis(Spline(), n, a, b, SplineParams(breaks, evennum, k))
 end
 
-# define methods for SplineParms type
-Basis(p::SplineParms) = Basis(Spline(), p.breaks, p.evennum, p.k)
+# define methods for SplineParams type
+Basis(p::SplineParams) = Basis(Spline(), p.breaks, p.evennum, p.k)
 
-nodes(p::SplineParms) = splinode(p.breaks, p.evennum, p.k)
+nodes(p::SplineParams) = splinode(p.breaks, p.evennum, p.k)
 
-derivative_op(p::SplineParms, order=1) =
+derivative_op(p::SplineParams, order=1) =
     splidop(p.breaks, p.evennum, p.k, order)
 
-evalbase(p::SplineParms, x=nodes(p), order=0) =
+evalbase(p::SplineParams, x=nodes(p), order=0) =
     splibase(p.breaks, p.evennum, p.k, x, order)

@@ -52,7 +52,7 @@ function fundef(foo...)
     g[:a] = a
     g[:b] = b
     g[:basetype] = basetype
-    g[:parms] = p
+    g[:params] = p
     g
 end
 
@@ -81,12 +81,12 @@ end
 function funnode(basis::Dict)
     d = basis[:d]  # 18
     if d == 1  # 19
-        xcoord = basenode(basis[:basetype][1], basis[:parms][1]...)  # 20
+        xcoord = basenode(basis[:basetype][1], basis[:params][1]...)  # 20
         x = xcoord  # 21
     else  # 22
         xcoord = cell(d)  # 23
         for j=1:d  # 24
-            xcoord[j] = basenode(basis[:basetype][j], basis[:parms][j]...)  #25
+            xcoord[j] = basenode(basis[:basetype][j], basis[:params][j]...)  #25
         end  # 26
         x = gridmake(xcoord...)  # 27
     end
@@ -160,10 +160,10 @@ function funbasex(basis::Dict{Symbol}, x=funnode(basis)[1], order=0,
             #118-122
             if length(orderj) == 1
                 B[:vals][1, j] = evalbase(basis[:basetype][j],
-                                          basis[:parms][j]..., x[j], orderj)
+                                          basis[:params][j]..., x[j], orderj)
             else
                 B[:vals][orderj-minorder[j]+1, j] =
-                    evalbase(basis[:basetype][j], basis[:parms][j]..., x[j],
+                    evalbase(basis[:basetype][j], basis[:params][j]..., x[j],
                              orderj)
             end
         end
@@ -179,10 +179,10 @@ function funbasex(basis::Dict{Symbol}, x=funnode(basis)[1], order=0,
             #131-135
             if length(orderj) == 1
                 B[:vals][1, j] = evalbase(basis[:basetype][j],
-                                          basis[:parms][j]..., x[:, j], orderj)[1]
+                                          basis[:params][j]..., x[:, j], orderj)[1]
             else
                 B[:vals][orderj-minorder[j]+1, j] =
-                    evalbase(basis[:basetype][j], basis[:parms][j]..., x[:, j],
+                    evalbase(basis[:basetype][j], basis[:params][j]..., x[:, j],
                              orderj)[1]
             end
         end

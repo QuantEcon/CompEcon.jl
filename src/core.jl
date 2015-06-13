@@ -1,4 +1,4 @@
-# TODO: When all is said and done, change `parms` to `params`
+# TODO: When all is said and done, change `params` to `params`
 # TODO: Maybe package in two modules, CompEcon, and CompEcon.(Original|Classic)
 # TODO: Write a test that has two Basis objects, separates them with getindex
 #       then puts them back together with a constructor or × and see if we get
@@ -44,39 +44,39 @@ old_name(::Spline) = :spli
 # Parameters #
 # ---------- #
 
-abstract BasisParms
-immutable ChebParms <: BasisParms
+abstract BasisParams
+immutable ChebParams <: BasisParams
     n::Int
     a::Int
     b::Int
 end
 
-immutable SplineParms <: BasisParms
+immutable SplineParams <: BasisParams
     breaks::Vector{Float64}
     evennum::Int
     k::Int
 end
 
-immutable LinParms <: BasisParms
+immutable LinParams <: BasisParams
     breaks::Vector{Float64}
     evennum::Int
 end
 
-typealias AnyParm Union(ChebParms, SplineParms, LinParms)
+typealias AnyParm Union(ChebParams, SplineParams, LinParams)
 
 Base.convert(::Type{AnyParm}, p::Vector{Any}) =
-    length(p) == 3 && isa(p[1], Number) ? ChebParms(p...) :
-    length(p) == 3 ? SplineParms(p...) :
-    length(p) == 2 ? LinParms(p...) :
+    length(p) == 3 && isa(p[1], Number) ? ChebParams(p...) :
+    length(p) == 3 ? SplineParams(p...) :
+    length(p) == 2 ? LinParams(p...) :
     error("Unknown parameter type")
 
-old_name(::LinParms) = :lin
-old_name(::ChebParms) = :cheb
-old_name(::SplineParms) = :spli
+old_name(::LinParams) = :lin
+old_name(::ChebParams) = :cheb
+old_name(::SplineParams) = :spli
 
-old_parms(p::LinParms) = Any[p.breaks, p.evennum]
-old_parms(p::ChebParms) = Any[p.n, p.a, p.b]
-old_parms(p::SplineParms) = Any[p.breaks, p.evennum, p.k]
+old_params(p::LinParams) = Any[p.breaks, p.evennum]
+old_params(p::ChebParams) = Any[p.n, p.a, p.b]
+old_params(p::SplineParams) = Any[p.breaks, p.evennum, p.k]
 
 # ---------- #
 # Basis Type #
@@ -87,12 +87,12 @@ immutable Basis{N}
     n::Vector{Int}
     a::Vector{Float64}
     b::Vector{Float64}
-    parms::Vector{AnyParm}
+    params::Vector{AnyParm}
 end
 
 # univariate basis. Helper to wrap all args in arrays
-Basis(bt::BasisFamily, n::Int, a::Float64, b::Float64, parms::BasisParms) =
-    Basis{1}([bt], [n], [a], [b], [parms])
+Basis(bt::BasisFamily, n::Int, a::Float64, b::Float64, params::BasisParams) =
+    Basis{1}([bt], [n], [a], [b], [params])
 
 # constructor to allow `Basis(Spline, breaks, evennum, k)` instead of just
 # `Basis(Spline(), breaks, evennum, k)`
@@ -105,9 +105,9 @@ function Basis(b1::Basis, bs::Basis...)  # fundef-esque method
     n = vcat(b1.n, [bs[i].n for i=1:Nb]...)
     b = vcat(b1.b, [bs[i].b for i=1:Nb]...)
     a = vcat(b1.a, [bs[i].a for i=1:Nb]...)
-    parms = vcat(b1.parms, [bs[i].parms for i=1:Nb]...)
+    params = vcat(b1.params, [bs[i].params for i=1:Nb]...)
     N = length(n)
-    Basis{N}(basistype, n, a, b, parms)
+    Basis{N}(basistype, n, a, b, params)
 end
 
 Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
@@ -119,7 +119,7 @@ Basis(p::AnyParm, ps::AnyParm...) = Basis(Basis(p),
 
 # convert old API to new API
 function Base.convert(::Type{Basis}, b::Dict{Symbol, Any})
-    Basis{b[:d]}(b[:basetype], b[:n], b[:a], b[:b], b[:parms])
+    Basis{b[:d]}(b[:basetype], b[:n], b[:a], b[:b], b[:params])
 end
 
 # convert new API to old API
@@ -130,7 +130,7 @@ function revert(b::Basis)
     B[:a] = b.a
     B[:b] = b.b
     B[:basetype] = Symbol[old_name(bt) for bt in b.basistype]
-    B[:parms] = Any[old_parms(p) for p in b.parms]
+    B[:params] = Any[old_params(p) for p in b.params]
     B
 end
 
@@ -149,7 +149,7 @@ function Base.getindex{N}(basis::Basis{N}, n::Int)
                     basis.n[[n]],
                     basis.b[[n]],
                     basis.a[[n]],
-                    basis.parms[[n]])
+                    basis.params[[n]])
 end
 
 # Define standard Julia methods for Basis
@@ -264,7 +264,7 @@ end
 
 function nodes(b::Basis)  # funnode method
     d = ndims(b)
-    xcoord = Vector{Float64}[nodes(b.parms[j]) for j in 1:d]
+    xcoord = Vector{Float64}[nodes(b.params[j]) for j in 1:d]
     x = gridmake(xcoord...)
     return x, xcoord
 end
@@ -325,10 +325,10 @@ function BasisStructure(basis::Basis,
 
         #131-135
         if length(orderj) == 1
-            vals[1, j] = evalbase(basis.parms[j], x[:, j], orderj)[1]
+            vals[1, j] = evalbase(basis.params[j], x[:, j], orderj)[1]
         else
             vals[orderj-minorder[j]+1, j] =
-                evalbase(basis.parms[j], x[:, j], orderj)[1]
+                evalbase(basis.params[j], x[:, j], orderj)[1]
         end
     end
 
@@ -372,9 +372,9 @@ function BasisStructure(basis::Basis, x::Array{Any}, order=0,
 
         #118-122
         if length(orderj) == 1
-            vals[1, j] = evalbase(basis.parms[j], x[j], orderj)[1]
+            vals[1, j] = evalbase(basis.params[j], x[j], orderj)[1]
         else
-            vals[orderj-minorder[j]+1, j] = evalbase(basis[:parms][j], x[j],
+            vals[orderj-minorder[j]+1, j] = evalbase(basis[:params][j], x[j],
                                                      orderj)[1]
         end
     end
