@@ -147,8 +147,8 @@ function Base.getindex{N}(basis::Basis{N}, n::Int)
     n < 0 || n > N && error("n must be between 1 and $N")
     return Basis{1}(basis.basistype[[n]],  # double `[[` to retain Vector
                     basis.n[[n]],
-                    basis.b[[n]],
                     basis.a[[n]],
+                    basis.b[[n]],
                     basis.params[[n]])
 end
 
