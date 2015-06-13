@@ -1,8 +1,4 @@
-# TODO: When all is said and done, change `params` to `params`
 # TODO: Maybe package in two modules, CompEcon, and CompEcon.(Original|Classic)
-# TODO: Write a test that has two Basis objects, separates them with getindex
-#       then puts them back together with a constructor or × and see if we get
-#       the same thing out
 
 #=
 Note that each subtype of `BT<:BasisFamily` (with associated `PT<:BasisParam`)
@@ -210,8 +206,8 @@ function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
     return d, numbas, d1
 end
 
+# TODO: what is this??? looks like is masks the subsequent method
 Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct}, args...) = bs
-
 
 # funbconv from direct to expanded
 function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
@@ -286,7 +282,6 @@ function nodes(b::Basis)  # funnode method
     x = gridmake(xcoord...)
     return x, xcoord
 end
-
 
 # code to be run at the top of each `BasisStructure` constructor
 # it enforces compatibility of arguments and computes common items
@@ -408,7 +403,6 @@ funbasex(basis::Basis, x=nodes(basis)[1], order=0, bformat::ABSR=Direct()) =
 funbase(basis::Basis, x=nodes(basis)[1], order=fill(0, 1, ndims(basis))) =
     funbasex(basis, x, order, Expanded()).vals[1]
 
-
 function get_coefs(basis::Basis, bs::BasisStructure{Tensor}, y)
     if any(bs.order[1, :] != 0)
         error("invalid basis structure - first elements must be order 0")
@@ -416,7 +410,6 @@ function get_coefs(basis::Basis, bs::BasisStructure{Tensor}, y)
     bs.vals = bs.vals[1, :]  # 68
     ckronxi(bs.vals, y, ndims(basis):-1:1)  # 66
 end
-
 
 get_coefs(basis::Basis, bs::BasisStructure{Direct}, y) =
     get_coefs(basis, convert(Expanded, bs), y)
