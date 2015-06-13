@@ -1,5 +1,5 @@
-using CompEcon
-using Base.Test
+test_files = ["types.jl", "basis.jl"]
 
-# write your own tests here
-@test 1 == 1
+for f in test_files
+    include(f)
+end
