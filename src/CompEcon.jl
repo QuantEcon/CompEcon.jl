@@ -6,7 +6,7 @@ export golden_method
 
 # types
 export BasisFamily, Cheb, Lin, Spline, Basis,
-       BasisParms, ChebParms, LinParms, SplineParms,
+       BasisParams, ChebParams, LinParams, SplineParams,
        AbstractBasisStructureRep, Tensor, Expanded, Direct,
        BasisStructure
 

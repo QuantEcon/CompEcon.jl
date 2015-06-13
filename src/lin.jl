@@ -23,15 +23,15 @@ function Basis(::Lin, breaks::Vector, evennum::Int=0)
     n = length(breaks)
     a = breaks[1]
     b = breaks[end]
-    Basis(Lin(), n, a, b, LinParms(breaks, evennum))
+    Basis(Lin(), n, a, b, LinParams(breaks, evennum))
 end
 
-# define methods for LinParms type
-Basis(p::LinParms) = Basis(Spline(), p.breaks, p.evennum)
+# define methods for LinParams type
+Basis(p::LinParams) = Basis(Spline(), p.breaks, p.evennum)
 
-nodes(p::LinParms) = linnode(p.breaks, p.evennum)
+nodes(p::LinParams) = linnode(p.breaks, p.evennum)
 
-derivative_op(p::LinParms, order=1) = lindop(p.breaks, p.evennum, order)
+derivative_op(p::LinParams, order=1) = lindop(p.breaks, p.evennum, order)
 
-evalbase(p::LinParms, x=nodes(p), order=0) =
+evalbase(p::LinParams, x=nodes(p), order=0) =
     linbase(p.breaks, p.evennum, x, order)
