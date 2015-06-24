@@ -1,6 +1,6 @@
-# ---------- #
-# Julian API #
-# ---------- #
+# ---------------------- #
+# Piecewise linear Basis #
+# ---------------------- #
 
 function Basis(::Lin, breaks::Vector, evennum::Int=0)
     n = length(breaks)  # 28

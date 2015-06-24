@@ -1,6 +1,6 @@
-# ---------- #
-# Julian API #
-# ---------- #
+# --------------- #
+# Chebyshev Basis #
+# --------------- #
 
 function Basis(::Cheb, n::Int, a::Real, b::Real)  # chebdef
     n <= 0 && error("n must be positive")
@@ -20,4 +20,3 @@ evalbase(p::ChebParams, x=nodes(p, 1), order=0, nodetype=1) =
     chebbase(p.n, p.a, p.b, x, order, nodetype)
 
 evalbasex(p::ChebParams, x) = chebbasex(p.n, p.a, p.b, x)
-

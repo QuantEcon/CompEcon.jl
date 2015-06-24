@@ -1,6 +1,6 @@
-# ---------- #
-# Julian API #
-# ---------- #
+# -------------- #
+# B-Spline Basis #
+# -------------- #
 
 function Basis(::Spline, breaks::Vector, evennum::Int, k::Int)
     # error handling
