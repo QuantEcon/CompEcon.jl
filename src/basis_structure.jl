@@ -40,7 +40,7 @@ end
 Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct}, args...) = bs
 
 # funbconv from direct to expanded
-function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
+    function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
                       order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bst, bs, order)
     n = prod([size(bs.vals[1, j], 2) for j=1:d])
@@ -79,23 +79,25 @@ end
 
 # funbconv from tensor to direct
 function Base.convert(bst::Type{Direct}, bs::BasisStructure{Tensor},
-                      order=fill(0, 1, size(bs.order), 2))
+                      order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bst, bs, order)
     vals = Array(AbstractMatrix, numbas, d)
     ind = cell(1, d)  # 78
 
-    for j=1:d, i=1:size(bs.vals, 1)
-        if !(isempty(bs.vals[i, j]))  # 81
-            ind[j] = collect(1:size(bs.vals[i, j], 1))  # 82
-            break
+    for j=1:d
+        for i=1:size(bs.vals, 1)
+            if !(isempty(bs.vals[i, j]))  # 84
+                ind[j] = collect(1:size(bs.vals[i, j], 1))  # 85
+                break
+            end
         end
     end
 
-    ind = gridmake(ind...)  # 87
+    ind = gridmake(ind...)  # 90
 
     for j=1:d, i=1:numbas
-        if !(isempty(bs.vals[i, j]))  # 90
-            vals[i, j] = vals[i, j][ind[j], :]
+        if !(isempty(bs.vals[i, j]))  # 93
+            vals[i, j] = bs.vals[i, j][ind[:, j], :]  # 94
         end
     end
 

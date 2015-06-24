@@ -82,11 +82,11 @@ old_params(p::SplineParams) = Any[p.breaks, p.evennum, p.k]
 # ---------- #
 
 immutable Basis{N}
-    basistype::Vector{BasisFamily}
-    n::Vector{Int}
-    a::Vector{Float64}
-    b::Vector{Float64}
-    params::Vector{BasisParams}
+    basistype::Vector{BasisFamily}  # Basis family
+    n::Vector{Int}                  # number of points and/or basis functions
+    a::Vector{Float64}              # lower bound of domain
+    b::Vector{Float64}              # upper bound of domain
+    params::Vector{BasisParams}     # params to construct basis
 end
 
 function Base.writemime{N}(io::IO, ::MIME"text/plain", b::Basis{N})
@@ -172,7 +172,7 @@ end
 # Define standard Julia methods for Basis
 Base.ndims{N}(::Basis{N}) = N
 Base.length(b::Basis) = prod(b.n)
-Base.size(b::Basis, n::Int) = length(b[n])  # uses method on previous line
+Base.size(b::Basis, i::Int) = length(b[i])  # uses method on previous line
 Base.size{N}(b::Basis{N}) = tuple(b.n...)::NTuple{N, Int64}
 
 # Bases of different dimension can't be equal

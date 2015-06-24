@@ -19,13 +19,13 @@ ckron(arrays::Array...) = reduce(kron, arrays)
 gridmake(v::Vector) = v
 
 # gridmake.m -- DONE
-function gridmake(arrays::Vector...)
+function gridmake{T}(arrays::Vector{T}...)
     # TODO: this gridmake works, but I don't like it.
     shapes = Int[size(e, 1) for e in arrays]
 
     n = length(arrays)
     l = prod(shapes)
-    out = Array(Float64, l, n)
+    out = Array(T, l, n)
 
     shapes = shapes[end:-1:1]
     sh = push!([1], shapes[1:end-1]...)
