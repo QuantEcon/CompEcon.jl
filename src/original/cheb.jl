@@ -96,9 +96,9 @@ function chebbase(n, a, b, x=chebnode(n, a, b, 1), order=0, nodetype=1)
             if order[ii] == 0
                 B[ii] = bas[:, 1:n]
             elseif order[ii] > 0
-                B[ii] = bas[:, i1:n-order[ii]] * D[order[ii]]
+                B[ii] = bas[:, 1:n-order[ii]] * D[order[ii]]
             else
-                B[ii] = bas[:, i1:n-order[ii]] * I[-order[ii]]
+                B[ii] = bas[:, 1:n-order[ii]] * I[-order[ii]]
             end
         end
     end

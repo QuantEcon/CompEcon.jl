@@ -116,10 +116,10 @@ end
 
 const dprod = row_kron
 
-# cckronxi.m -- DONE
-cckronxi(b::Matrix, c, ind=1:length(b)) = b \ c  # 23
+# ckronxi.m -- DONE
+ckronxi{T<:Number}(b::Matrix{T}, c, ind=1:length(b)) = b \ c  # 23
 
-function cckronxi(b::Vector{Any}, c, ind=1:length(b))
+function ckronxi(b::Array, c, ind=1:length(b))
     d = length(ind)  # 25
     n = Int[size(b[ind[i]], 2) for i=1:d]  #26-27
     prod(n) != size(c, 1) && error("b and c are not conformable")  # 28-30
@@ -127,10 +127,10 @@ function cckronxi(b::Vector{Any}, c, ind=1:length(b))
     z = c'  # 31
     mm = 1  # 32
     for i=1:d  # 33
-        m = prod(size(z)) / n[i]  # 34
+        m = round(Int, prod(size(z)) / n[i])  # 34
         z = reshape(z, m, n[i])  # 35
         z = b[ind[i]] \ z'  # 36
-        mm = mm*size(z, 1)  # 37
+        mm *= size(z, 1)  # 37
     end  # 38
     reshape(z, mm, size(c, 2))  # 39
 end
@@ -140,7 +140,7 @@ cdprodx{T<:Number}(b::Matrix{T}, c, ind=1:prod(size(b))) = b*c  # 39
 
 
 # TODO: this should be a fold
-function cdprodx(b::Array{Any}, c, ind=1:prod(size(b)))
+function cdprodx(b::Array, c, ind=1:prod(size(b)))
     d = length(ind)
     a = b[ind[d]]
     for i=d-1:-1:1
@@ -151,9 +151,9 @@ end
 
 
 # cckronx.m -- DONE
-cckronx(b::Matrix, c, ind=1:prod(size(b))) = b * c  # 23
+cckronx{T<:Number}(b::Matrix{T}, c, ind=1:prod(size(b))) = b * c  # 23
 
-function cckronx(b::Vector{Any}, c, ind=1:prod(size(b)))
+function cckronx(b::Array, c, ind=1:prod(size(b)))
     d = length(ind)  # 25
     n = Int[size(b[ind[i]], 2) for i=1:d]  #26-27
     prod(n) != size(c, 1) && error("b and c are not conformable")  # 28-30
