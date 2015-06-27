@@ -9,22 +9,12 @@ immutable Spline <: BasisFamily end
 
 typealias AnyFamily Union(Cheb, Lin, Spline)
 
-# needed for the `convert(::Basis, ::Dict)` method below
-Base.convert(::Type{BasisFamily}, s::Symbol) =
-    s == :spli ? Spline() :
-    s == :cheb ? Cheb() :
-    s == :lin  ? Lin() :
-    error("Unknown basis type")
-
-old_name(::Lin) = :lin
-old_name(::Cheb) = :cheb
-old_name(::Spline) = :spli
-
 # ---------- #
 # Parameters #
 # ---------- #
 
 abstract BasisParams
+
 immutable ChebParams <: BasisParams
     n::Int
     a::Float64
@@ -61,21 +51,6 @@ function Base.writemime(io::IO, ::MIME"text/plain", p::LinParams)
 end
 
 typealias AnyParam Union(ChebParams, SplineParams, LinParams)
-
-# needed for the `convert(::Basis, ::Dict)` method below
-Base.convert(::Type{BasisParams}, p::Vector{Any}) =
-    length(p) == 3 && isa(p[1], Number) ? ChebParams(p...) :
-    length(p) == 3 ? SplineParams(p...) :
-    length(p) == 2 ? LinParams(p...) :
-    error("Unknown parameter type")
-
-old_name(::LinParams) = :lin
-old_name(::ChebParams) = :cheb
-old_name(::SplineParams) = :spli
-
-old_params(p::LinParams) = Any[p.breaks, p.evennum]
-old_params(p::ChebParams) = Any[p.n, p.a, p.b]
-old_params(p::SplineParams) = Any[p.breaks, p.evennum, p.k]
 
 # ---------- #
 # Basis Type #
@@ -131,24 +106,6 @@ Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
 # construct basis out of multiple Params
 Basis(p::AnyParam, ps::AnyParam...) = Basis(Basis(p),
                                             Basis[Basis(p) for p in ps]...)
-
-
-# convert old API to new API
-function Base.convert(::Type{Basis}, b::Dict{Symbol, Any})
-    Basis{b[:d]}(b[:basetype], b[:n], b[:a], b[:b], b[:params])
-end
-
-# convert new API to old API
-function revert(b::Basis)
-    B = Dict{Symbol, Any}()
-    B[:d] = ndims(b)
-    B[:n] = b.n
-    B[:a] = b.a
-    B[:b] = b.b
-    B[:basetype] = Symbol[old_name(bt) for bt in b.basistype]
-    B[:params] = Any[old_params(p) for p in b.params]
-    B
-end
 
 # fundefn methods
 Basis(bt::BasisFamily, n::Matrix, a::Matrix, b::Matrix, order::Int=3) =

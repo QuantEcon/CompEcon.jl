@@ -11,19 +11,19 @@ basedef(s::Symbol, args...) =
     s == :spli ? splidef(args...) :
     s == :cheb ? chebdef(args...) :
     s == :lin  ? lindef(args...)  :
-    error("somehow you snuck through here you :japanese_goblin:")
+    error("somehow you snuck through here you 👺")
 
 basenode(s::Symbol, args...) =
     s == :spli ? splinode(args...) :
     s == :cheb ? chebnode(args...) :
     s == :lin  ? linnode(args...)  :
-    error("somehow you snuck through here you :japanese_goblin:")
+    error("somehow you snuck through here you 👺")
 
 evalbase(s::Symbol, args...) =
     s == :spli ? splibase(args...) :
     s == :cheb ? chebbase(args...) :
     s == :lin  ? linbase(args...)  :
-    error("somehow you snuck through here you :japanese_goblin:")
+    error("somehow you snuck through here you 👺")
 
 
 # ---------------------------- #

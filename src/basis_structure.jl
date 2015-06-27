@@ -40,7 +40,7 @@ end
 Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct}, args...) = bs
 
 # funbconv from direct to expanded
-    function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
+function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
                       order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bst, bs, order)
     n = prod([size(bs.vals[1, j], 2) for j=1:d])
@@ -51,7 +51,7 @@ Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct}, args...) = bs
         vals[i] = bs.vals[order[i, d] - bs.order[d]+1, d]  # 63
         for j=d-1:-1:1
             vals[i] = row_kron(vals[i],
-                                   bs.vals[order[i, j] - bs.order[j]+1, j])  #65
+                               bs.vals[order[i, j] - bs.order[j]+1, j])  #65
         end
     end
     BasisStructure{Expanded}(order, vals)
@@ -188,10 +188,6 @@ function BasisStructure(basis::Basis,
     convert(Expanded, BasisStructure(basis, x, order, Direct()))
 end
 
-# TODO: figure out a better way than just x::Array{Any} to do this,
-#       Maybe x::Union(Array{Vector}, Union(Any)) because nodes(b)[2]
-#       will Array{Vector}. Seems foolish to throw away that type information
-#       just so dispatch will reach this function
 function BasisStructure{T}(basis::Basis, x::Vector{Vector{T}}, order=0,
                            bformat::Tensor=Tensor())  # funbasex
     d, m, order, minorder, numbases = check_basis_structure(basis, x, order,
