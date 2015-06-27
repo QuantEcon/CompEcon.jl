@@ -53,6 +53,7 @@ function funfitxy(basis::Basis, x, y)
     # additional check
     size(x, 1) != m && error("x and y are incompatible")
 
+    println("here!!")
     bs = BasisStructure(basis, x, 0, Direct())
     c = get_coefs(basis, bs, y)
     c, bs
@@ -67,7 +68,6 @@ end
 # ---------- #
 # Evaluation #
 # ---------- #
-
 
 # funeval wants to evaluate at a matrix. As a stop-gap until I find some
 # time, this method makes a scalar x into a 1x1 matrix
@@ -185,7 +185,7 @@ end
 # Convenience `Interpoland` type #
 # ------------------------------- #
 
-immutable Interpoland{T<:FloatingPoint,N,BST<:ABSR}
+immutable Interpoland{T,N,BST<:ABSR}
     basis::Basis{N}               # the basis -- can't change
     coefs::Vector{T}              # coefficients -- might change
     bstruct::BasisStructure{BST}  # BasisStructure at nodes of `b`
@@ -196,15 +196,12 @@ function Interpoland(basis::Basis, bs::BasisStructure, y)
     Interpoland(basis, c, bs)
 end
 
-function Interpoland{T}(basis::Basis, x::Vector{Vector{T}}, y)
-    c, bs = funfitxy(basis, x, y)
-    Interpoland(basis, c, bs)
-end
-
 function Interpoland(basis::Basis, x, y)
     c, bs = funfitxy(basis, x, y)
     Interpoland(basis, c, bs)
 end
+
+Interpoland(p::AnyParam, x, y) = Interpoland(Basis(p), x, y)
 
 function Interpoland(basis::Basis, f::Function)
     # TODO: Decide if I want to do this or if I would rather do
@@ -216,14 +213,23 @@ function Interpoland(basis::Basis, f::Function)
     Interpoland(basis, x, y)
 end
 
+Interpoland(p::AnyParam, f::Function) = Interpoland(Basis(p), f)
+
 # let funeval take care of order and such. This just exists to make it so the
 # user doesn't have to keep track of the coefficient vector
 evaluate(interp::Interpoland, x::Matrix; order=0) =
     funeval(interp.coefs, interp.basis, x, order)
 
+function evaluate{T}(interp::Interpoland{T,1}, x1::AbstractVector; order=0)
+    evaluate(interp, x1[:, :]; order=order)
+end
+
 # construct the grid for the user
-evaluate(interp::Interpoland, xs::AbstractVector...; order=0) =
-    evaluate(interp, gridmake(xs...); order=order)
+function evaluate(interp::Interpoland, x1::AbstractVector,
+                  xs::AbstractVector...; order=0)
+    evaluate(interp, gridmake(x1, xs...); order=order)
+end
+
 
 # now, given a new vector of `y` data we construct a new coefficient vector
 function update_coefs!(interp::Interpoland, y::Vector)
