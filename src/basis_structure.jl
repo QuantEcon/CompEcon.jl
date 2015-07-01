@@ -9,7 +9,6 @@ immutable Tensor <: ABSR end
 immutable Direct <: ABSR end
 immutable Expanded <: ABSR end
 
-
 immutable BasisStructure{BST<:ABSR}
     order::Matrix{Int}
     vals::Array{AbstractMatrix}
@@ -36,8 +35,8 @@ function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
     return d, numbas, d1
 end
 
-# TODO: what is this??? looks like is masks the subsequent method
-Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct}, args...) = bs
+# no-op
+Base.convert{T<:ABSR}(::Type{T}, bs::BasisStructure{T}) = bs
 
 # funbconv from direct to expanded
 function Base.convert(bst::Type{Expanded}, bs::BasisStructure{Direct},
@@ -82,18 +81,18 @@ function Base.convert(bst::Type{Direct}, bs::BasisStructure{Tensor},
                       order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bst, bs, order)
     vals = Array(AbstractMatrix, numbas, d)
-    ind = cell(1, d)  # 78
+    raw_ind = cell(1, d)  # 78
 
     for j=1:d
         for i=1:size(bs.vals, 1)
             if !(isempty(bs.vals[i, j]))  # 84
-                ind[j] = collect(1:size(bs.vals[i, j], 1))  # 85
+                raw_ind[j] = collect(1:size(bs.vals[i, j], 1))  # 85
                 break
             end
         end
     end
 
-    ind = gridmake(ind...)  # 90
+    ind = gridmake(raw_ind...)  # 90
 
     for j=1:d, i=1:numbas
         if !(isempty(bs.vals[i, j]))  # 93
@@ -141,16 +140,15 @@ end
 #       that I could have `BasisStucture(basis)` give default and
 #       `BasisStructure(basis, bformat)` give alternate
 # method to construct BasisStructure in direct or expanded form based on
-# a matrix of `x` values
-function BasisStructure(basis::Basis,
-                        x::Array{Float64}=nodes(basis)[1], order=0,
-                        bformat::Direct=Direct())  # funbasex
+# a matrix of `x` values  -- funbasex
+function BasisStructure{N}(basis::Basis{N}, ::Direct,
+                           x::Array{Float64}=nodes(basis)[1], order=0)
 
     d, m, order, minorder, numbases = check_basis_structure(basis, x, order,
-                                                            bformat)
+                                                            Direct())
     # 76-77
     out_order = minorder
-    out_format = bformat
+    out_format = Direct()
     vals = Array(AbstractMatrix, maximum(numbases), d)
 
     # now do direct form, will convert to expanded later if needed
@@ -173,7 +171,7 @@ function BasisStructure(basis::Basis,
 
     # if d == 1, switch to expanded format and return it directly
     # 140-145
-    if size(vals, 2) == 1  # 1 dimension
+    if N == 1  # 1 dimension
         return to_expanded(order, vals)
     end
 
@@ -181,19 +179,20 @@ function BasisStructure(basis::Basis,
     BasisStructure{Direct}(out_order, vals)
 end
 
-function BasisStructure(basis::Basis,
-                        x::Array{Float64}=nodes(basis)[1], order=0,
-                        bformat::Expanded=Expanded())  # funbasex
+# TODO: masked by below
+function BasisStructure(basis::Basis, ::Expanded,
+                        x::Array{Float64}=nodes(basis)[1], order=0)  # funbasex
     # create direct form, then convert to expanded
-    convert(Expanded, BasisStructure(basis, x, order, Direct()))
+    bsd = BasisStructure(basis, Direct(), x, order)
+    convert(Expanded, bsd)
 end
 
-function BasisStructure{T}(basis::Basis, x::Vector{Vector{T}}, order=0,
-                           bformat::Tensor=Tensor())  # funbasex
+function BasisStructure{N,T}(basis::Basis{N}, ::Tensor,
+                           x::Vector{Vector{T}}=nodes(basis)[2], order=0)
     d, m, order, minorder, numbases = check_basis_structure(basis, x, order,
-                                                        bformat)
+                                                            Tensor())
     out_order = minorder
-    out_format = bformat
+    out_format = Tensor()
     vals = Array(AbstractMatrix, maximum(numbases), d)
 
     # construct tensor base
@@ -214,10 +213,8 @@ function BasisStructure{T}(basis::Basis, x::Vector{Vector{T}}, order=0,
         end
     end
 
-    size(vals, 2) == 1 ? to_expanded(order, vals) :
-                         BasisStructure{Tensor}(out_order, vals)
+    N == 1 ? to_expanded(order, vals) : BasisStructure{Tensor}(out_order, vals)
 end
-
 
 # add method to funbasex that calls the above constructors
 funbasex(basis::Basis, x=nodes(basis)[1], order=0, bformat::ABSR=Direct()) =
