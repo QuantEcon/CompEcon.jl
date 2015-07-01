@@ -17,7 +17,6 @@ splinode(breaks::Vector, evennum::Int, k::Int=3) =
 splidop(breaks, evennum=0, k=3, order=1) =
     derivative_op(SplineParams(breaks, evennum, k), order)
 
-
 # splibas.m -- DONE
 splibase(breaks::Vector, evennum, k=3, x=splinode(breaks, evennum, k),
         order=0) = evalbase(SplineParams(breaks, evennum, k), x, order)

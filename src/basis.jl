@@ -98,32 +98,28 @@ function Basis(b1::Basis, bs::Basis...)  # fundef-esque method
     b = vcat(b1.b, [bs[i].b for i=1:Nb]...)
     params = vcat(b1.params, [bs[i].params for i=1:Nb]...)
     N = length(n)
-    Basis{N}(basistype, n, a, b, params)
+    Basis{N}(basistype, n, a, b, params)::Basis{Nb+1}
 end
 
 Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
 
-# construct basis out of multiple Params
-Basis(p::AnyParam, ps::AnyParam...) = Basis(Basis(p),
-                                            Basis[Basis(p) for p in ps]...)
+# construct basis out of multiple Params (type assertion for stability)
+Basis(p::AnyParam, ps::AnyParam...) =
+    Basis(Basis(p), Basis[Basis(p) for p in ps]...)::Basis{length(ps) + 1}
 
-# fundefn methods
+# fundefn methods -- TODO: re-write this to not use old fundefn routine
 Basis(bt::BasisFamily, n::Matrix, a::Matrix, b::Matrix, order::Int=3) =
     Basis(fundefn(old_name(bt), n, a, b, order))
 
 # the [:, :] makes into Matrix and we call the previous method
 Basis(bt::BasisFamily, n::Vector, a::Vector, b::Vector, order::Int=3) =
-    Basis(bt, n[:, :], a[:, :], b[:, :], order)
+    Basis(bt, n[:, :], a[:, :], b[:, :], order)::Basis{length(n)}
 
 
-# separating Basis
+# separating Basis -- just re construct it from the nth set of params
 function Base.getindex{N}(basis::Basis{N}, n::Int)
     n < 0 || n > N && error("n must be between 1 and $N")
-    return Basis{1}(basis.basistype[[n]],  # double `[[` to retain Vector
-                    basis.n[[n]],
-                    basis.a[[n]],
-                    basis.b[[n]],
-                    basis.params[[n]])
+    Basis(basis.params[n])::Basis{1}
 end
 
 # Define standard Julia methods for Basis
@@ -137,11 +133,16 @@ Base.size{N}(b::Basis{N}) = tuple(b.n...)::NTuple{N, Int64}
 
 # basis are equal if all fields of the basis are equal
 =={N}(b1::Basis{N}, b2::Basis{N}) =
-    all(map(nm->getfield(b1, nm) == getfield(b2, nm), fieldnames(b1)))
+    all(map(nm->getfield(b1, nm) == getfield(b2, nm), fieldnames(b1)))::Bool
 
-function nodes(b::Basis)  # funnode method
-    d = ndims(b)
-    xcoord = Vector{Float64}[nodes(b.params[j]) for j in 1:d]
-    x = gridmake(xcoord...)
+
+function nodes(b::Basis{1})
+    x = nodes(b.params[1])
+    (x, Vector{Float64}[x])
+end
+
+function nodes{N}(b::Basis{N})  # funnode method
+    xcoord = Vector{Float64}[nodes(b.params[j]) for j in 1:N]
+    x = gridmake(xcoord...)::Matrix{Float64}
     return x, xcoord
 end
