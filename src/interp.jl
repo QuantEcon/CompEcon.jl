@@ -53,8 +53,7 @@ function funfitxy(basis::Basis, x, y)
     # additional check
     size(x, 1) != m && error("x and y are incompatible")
 
-    println("here!!")
-    bs = BasisStructure(basis, x, 0, Direct())
+    bs = BasisStructure(basis, Direct(), x, 0)
     c = get_coefs(basis, bs, y)
     c, bs
 end
@@ -90,7 +89,7 @@ function funeval(c, basis::Basis, x::Matrix, order=0)
     end
     # TODO: defaulting to Direct() should really happen via a constructor.
     #       need to do some design work and clean that up
-    bs = BasisStructure(basis, x, order, Direct())  # 67
+    bs = BasisStructure(basis, Direct(), x, order)  # 67
 
     funeval(c, bs, order)
 end
