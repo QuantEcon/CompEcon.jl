@@ -73,8 +73,16 @@ end
 funeval(c, basis::Basis, x::Real, order=0) =
     funeval(c, basis, fill(x, 1, 1), order)
 
-# similar to above for vectors (size will be nx1)
-funeval(c, basis::Basis, x::Vector, order=0) = funeval(c, basis, x[:, :], order)
+# when x is a vector and we have a univariate interpoland, we don't want to
+# return just the first element (see next method)
+funeval(c, basis::Basis{1}, x::Vector, order=0) =
+    funeval(c, basis, x[:, :], order)
+
+# Here we want only the first element because we have a N>1 dimensional basis
+# and we passed only a 1 dimensional array of points at which to evaluate,
+# meaning we must have passed a single point.
+funeval{N}(c, basis::Basis{N}, x::Vector, order=0) =
+    funeval(c, basis, reshape(x, 1, N), order)[1]
 
 # helper method to construct BasisStructure, then pass to one of the three
 # below
@@ -205,8 +213,8 @@ Interpoland(p::AnyParam, x, y) = Interpoland(Basis(p), x, y)
 function Interpoland(basis::Basis, f::Function)
     # TODO: Decide if I want to do this or if I would rather do
     #       x, xd = nodes(basis); y = f(x); Interpoland(basis, xd, y)
-    #       to get the BasisStructure in Tensor format (potentially more)
-    #       efficient
+    #       to get the BasisStructure in Tensor format (potentially more
+    #       efficient)
     x = nodes(basis)[1]
     y = f(x)
     Interpoland(basis, x, y)
@@ -216,19 +224,13 @@ Interpoland(p::AnyParam, f::Function) = Interpoland(Basis(p), f)
 
 # let funeval take care of order and such. This just exists to make it so the
 # user doesn't have to keep track of the coefficient vector
-evaluate(interp::Interpoland, x::Matrix; order=0) =
+evaluate(interp::Interpoland, x; order=0) =
     funeval(interp.coefs, interp.basis, x, order)
 
-function evaluate{T}(interp::Interpoland{T,1}, x1::AbstractVector; order=0)
-    evaluate(interp, x1[:, :]; order=order)
-end
-
-# construct the grid for the user
-function evaluate(interp::Interpoland, x1::AbstractVector,
-                  xs::AbstractVector...; order=0)
-    evaluate(interp, gridmake(x1, xs...); order=order)
-end
-
+#=
+TODO: I can add an @stagedfunction evaluate{N,T}(interp::Interpoland{Basis{N}}, x::NTuple{N,Vector{T}})
+      that calls gridmake for me. Then they can pass individual points
+=#
 
 # now, given a new vector of `y` data we construct a new coefficient vector
 function update_coefs!(interp::Interpoland, y::Vector)
@@ -238,7 +240,7 @@ function update_coefs!(interp::Interpoland, y::Vector)
 end
 
 # similar for a function -- just hand off to above
-update_coefs!(interp::Interpoland, f::Vector) =
+update_coefs!(interp::Interpoland, f::Function) =
     update_coefs!(interp, f(nodes(interp.basis)[1]))
 
 # alias update_coefs! to fit!

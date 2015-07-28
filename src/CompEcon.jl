@@ -77,7 +77,7 @@ export BasisFamily, Cheb, Lin, Spline, Basis,
 
 # functions
 export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
-       derivative_op, funbasex, row_kron, evaluate
+       derivative_op, funbasex, row_kron, evaluate, fit!, update_coefs!
 
 
 # old API only
@@ -85,6 +85,13 @@ export fundef, fundefn, funnode, funbase, funbasex, funeval, funbconv,
        chebdef, chebnode, chebbase, chebbasex, chebdop,
        splidef, splinode, splibase, splibasex, splidop,
        lindef, linnode, linbase, lindop
+
+# quad
+export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
+       qnwunif, qnwlogn,
+       quadrect,
+       gridmake,
+       do_quad
 
 include("util.jl")
 include("optimization.jl")
@@ -102,6 +109,9 @@ include("original/lin.jl")
 include("cheb.jl")
 include("spline.jl")
 include("lin.jl")
+
+# include quad
+include("quad.jl")
 
 
 end # module
