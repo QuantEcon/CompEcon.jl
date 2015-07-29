@@ -101,6 +101,7 @@ include("basis_structure.jl")
 include("interp.jl")
 
 # include the rest of the original API
+include("ml_compat.jl")
 include("original/cheb.jl")
 include("original/spli.jl")
 include("original/lin.jl")
