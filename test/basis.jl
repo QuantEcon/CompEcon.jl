@@ -53,6 +53,9 @@ facts("Test Basis") do
         # test fundefn type methods
         @fact b_spline2d --> Basis(b1, b1)
         @fact b_cheb2d --> Basis(b2, b2)
+
+        # test that basis of different dimensions are not equal
+        @fact ==(b_spline2d, b1) --> false
     end
 
     context("getindex and combining preserves basis") do
