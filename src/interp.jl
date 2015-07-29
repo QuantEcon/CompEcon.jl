@@ -53,7 +53,7 @@ function funfitxy(basis::Basis, x, y)
     # additional check
     size(x, 1) != m && error("x and y are incompatible")
 
-    bs = BasisStructure(basis, x, 0, Direct())
+    bs = BasisStructure(basis, Direct(), x, 0)
     c = get_coefs(basis, bs, y)
     c, bs
 end
@@ -68,14 +68,21 @@ end
 # Evaluation #
 # ---------- #
 
-
 # funeval wants to evaluate at a matrix. As a stop-gap until I find some
 # time, this method makes a scalar x into a 1x1 matrix
 funeval(c, basis::Basis, x::Real, order=0) =
     funeval(c, basis, fill(x, 1, 1), order)
 
-# similar to above for vectors (size will be nx1)
-funeval(c, basis::Basis, x::Vector, order=0) = funeval(c, basis, x[:, :], order)
+# when x is a vector and we have a univariate interpoland, we don't want to
+# return just the first element (see next method)
+funeval(c, basis::Basis{1}, x::Vector, order=0) =
+    funeval(c, basis, x[:, :], order)
+
+# Here we want only the first element because we have a N>1 dimensional basis
+# and we passed only a 1 dimensional array of points at which to evaluate,
+# meaning we must have passed a single point.
+funeval{N}(c, basis::Basis{N}, x::Vector, order=0) =
+    funeval(c, basis, reshape(x, 1, N), order)[1]
 
 # helper method to construct BasisStructure, then pass to one of the three
 # below
@@ -90,7 +97,7 @@ function funeval(c, basis::Basis, x::Matrix, order=0)
     end
     # TODO: defaulting to Direct() should really happen via a constructor.
     #       need to do some design work and clean that up
-    bs = BasisStructure(basis, x, order, Direct())  # 67
+    bs = BasisStructure(basis, Direct(), x, order)  # 67
 
     funeval(c, bs, order)
 end
@@ -185,7 +192,7 @@ end
 # Convenience `Interpoland` type #
 # ------------------------------- #
 
-immutable Interpoland{T<:FloatingPoint,N,BST<:ABSR}
+immutable Interpoland{T,N,BST<:ABSR}
     basis::Basis{N}               # the basis -- can't change
     coefs::Vector{T}              # coefficients -- might change
     bstruct::BasisStructure{BST}  # BasisStructure at nodes of `b`
@@ -196,34 +203,37 @@ function Interpoland(basis::Basis, bs::BasisStructure, y)
     Interpoland(basis, c, bs)
 end
 
-function Interpoland{T}(basis::Basis, x::Vector{Vector{T}}, y)
-    c, bs = funfitxy(basis, x, y)
-    Interpoland(basis, c, bs)
-end
-
 function Interpoland(basis::Basis, x, y)
     c, bs = funfitxy(basis, x, y)
     Interpoland(basis, c, bs)
 end
 
+Interpoland(p::AnyParam, x, y) = Interpoland(Basis(p), x, y)
+
 function Interpoland(basis::Basis, f::Function)
     # TODO: Decide if I want to do this or if I would rather do
     #       x, xd = nodes(basis); y = f(x); Interpoland(basis, xd, y)
-    #       to get the BasisStructure in Tensor format (potentially more)
-    #       efficient
+    #       to get the BasisStructure in Tensor format (potentially more
+    #       efficient)
     x = nodes(basis)[1]
     y = f(x)
     Interpoland(basis, x, y)
 end
 
+Interpoland(p::AnyParam, f::Function) = Interpoland(Basis(p), f)
+
 # let funeval take care of order and such. This just exists to make it so the
 # user doesn't have to keep track of the coefficient vector
-evaluate(interp::Interpoland, x::Matrix; order=0) =
+evaluate(interp::Interpoland, x; order=0) =
     funeval(interp.coefs, interp.basis, x, order)
 
-# construct the grid for the user
-evaluate(interp::Interpoland, xs::AbstractVector...; order=0) =
-    evaluate(interp, gridmake(xs...); order=order)
+#=
+TODO: I can add an
+
+@stagedfunction evaluate{N,T}(interp::Interpoland{Basis{N}}, x::NTuple{N,Vector{T}})
+
+that calls gridmake for me. Then they can pass points along individual dimensions
+=#
 
 # now, given a new vector of `y` data we construct a new coefficient vector
 function update_coefs!(interp::Interpoland, y::Vector)
@@ -233,7 +243,7 @@ function update_coefs!(interp::Interpoland, y::Vector)
 end
 
 # similar for a function -- just hand off to above
-update_coefs!(interp::Interpoland, f::Vector) =
+update_coefs!(interp::Interpoland, f::Function) =
     update_coefs!(interp, f(nodes(interp.basis)[1]))
 
 # alias update_coefs! to fit!
