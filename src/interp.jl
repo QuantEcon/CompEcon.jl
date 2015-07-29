@@ -228,8 +228,11 @@ evaluate(interp::Interpoland, x; order=0) =
     funeval(interp.coefs, interp.basis, x, order)
 
 #=
-TODO: I can add an @stagedfunction evaluate{N,T}(interp::Interpoland{Basis{N}}, x::NTuple{N,Vector{T}})
-      that calls gridmake for me. Then they can pass individual points
+TODO: I can add an
+
+@stagedfunction evaluate{N,T}(interp::Interpoland{Basis{N}}, x::NTuple{N,Vector{T}})
+
+that calls gridmake for me. Then they can pass points along individual dimensions
 =#
 
 # now, given a new vector of `y` data we construct a new coefficient vector

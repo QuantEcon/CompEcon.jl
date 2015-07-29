@@ -179,7 +179,6 @@ function BasisStructure{N}(basis::Basis{N}, ::Direct,
     BasisStructure{Direct}(out_order, vals)
 end
 
-# TODO: masked by below
 function BasisStructure(basis::Basis, ::Expanded,
                         x::Array{Float64}=nodes(basis)[1], order=0)  # funbasex
     # create direct form, then convert to expanded
