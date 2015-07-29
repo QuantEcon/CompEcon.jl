@@ -33,6 +33,10 @@ immutable SplineParams <: BasisParams
     k::Int
 end
 
+# constructor to take a, b, n and form linspace for breaks
+SplineParams(n::Int, a::Real, b::Real, k::Int) =
+    SplineParams(collect(linspace(a, b, n)), 0, k)
+
 function Base.writemime(io::IO, ::MIME"text/plain", p::SplineParams)
     m = string("$(p.k) order spline interpoland parameters from ",
                "$(p.breaks[1]), $(p.breaks[end])")
@@ -44,13 +48,29 @@ immutable LinParams <: BasisParams
     evennum::Int
 end
 
+# constructor to take a, b, n and form linspace for breaks
+LinParams(n::Int, a::Real, b::Real) =
+    LinParams(collect(linspace(a, b, n)), 0)
+
 function Base.writemime(io::IO, ::MIME"text/plain", p::LinParams)
-    m = string("$(p.k) order piecewise linear interpoland parameters ",
+    m = string("piecewise linear interpoland parameters ",
                "from $(p.breaks[1]), $(p.breaks[end])")
     print(m)
 end
 
 typealias AnyParam Union(ChebParams, SplineParams, LinParams)
+
+for (T, TP) in [(Cheb, ChebParams), (Lin, LinParams), (Spline, SplineParams)]
+    @eval _param(::$(T)) = $TP
+    @eval _param(::Type{$(T)}) = $TP
+end
+
+# params of same type are equal if all their fields are equal
+=={T<:AnyParam}(p1::T, p2::T) =
+    all(map(nm->getfield(p1, nm) == getfield(p2, nm), fieldnames(p1)))::Bool
+
+# Bases of different dimension can't be equal
+=={T1<:AnyParam,T2<:AnyParam}(::T1, ::T2) = false
 
 # ---------- #
 # Basis Type #
@@ -107,14 +127,13 @@ Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
 Basis(p::AnyParam, ps::AnyParam...) =
     Basis(Basis(p), Basis[Basis(p) for p in ps]...)::Basis{length(ps) + 1}
 
-# fundefn methods -- TODO: re-write this to not use old fundefn routine
-Basis(bt::BasisFamily, n::Matrix, a::Matrix, b::Matrix, order::Int=3) =
-    Basis(fundefn(old_name(bt), n, a, b, order))
+# fundefn type method
+Basis{T<:AnyFamily}(bt::T, n::Vector, a::Vector, b::Vector) =
+    Basis(map(_param(T), n, a, b)...)::Basis{length(n)}
 
-# the [:, :] makes into Matrix and we call the previous method
-Basis(bt::BasisFamily, n::Vector, a::Vector, b::Vector, order::Int=3) =
-    Basis(bt, n[:, :], a[:, :], b[:, :], order)::Basis{length(n)}
-
+# special method for Spline that adds `k` argument
+Basis(::Spline, n::Vector, a::Vector, b::Vector, k::Vector=ones(Int, length(n))) =
+    Basis(map(SplineParams, n, a, b, k)...)::Basis{length(n)}
 
 # separating Basis -- just re construct it from the nth set of params
 function Base.getindex{N}(basis::Basis{N}, n::Int)
@@ -134,7 +153,6 @@ Base.size{N}(b::Basis{N}) = tuple(b.n...)::NTuple{N, Int64}
 # basis are equal if all fields of the basis are equal
 =={N}(b1::Basis{N}, b2::Basis{N}) =
     all(map(nm->getfield(b1, nm) == getfield(b2, nm), fieldnames(b1)))::Bool
-
 
 function nodes(b::Basis{1})
     x = nodes(b.params[1])

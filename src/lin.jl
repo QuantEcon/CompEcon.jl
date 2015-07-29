@@ -27,7 +27,7 @@ function Basis(::Lin, breaks::Vector, evennum::Int=0)
 end
 
 # define methods for LinParams type
-Basis(p::LinParams) = Basis(Spline(), p.breaks, p.evennum)
+Basis(p::LinParams) = Basis(Lin(), p.breaks, p.evennum)
 
 nodes(p::LinParams) = p.breaks
 
