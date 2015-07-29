@@ -13,10 +13,10 @@ facts("Test Basis") do
     b = [3, 10.0]
     params = [SplineParams(linspace(-3, 3, 9), 0, 1), ChebParams(7, 1e-4, 10.0)]
 
-    # use univariate constructurs
+    # use univariate constructors
     b1, b2 = map(Basis, bt, n, a, b, params)
 
-    # directly construct multivariate basis using inner constructor
+    # directly construct multivariate basis using (default) inner constructor
     b_both = Basis{2}(bt, n, a, b, params)
 
     context("constructors") do
