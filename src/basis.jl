@@ -9,22 +9,12 @@ immutable Spline <: BasisFamily end
 
 typealias AnyFamily Union(Cheb, Lin, Spline)
 
-# needed for the `convert(::Basis, ::Dict)` method below
-Base.convert(::Type{BasisFamily}, s::Symbol) =
-    s == :spli ? Spline() :
-    s == :cheb ? Cheb() :
-    s == :lin  ? Lin() :
-    error("Unknown basis type")
-
-old_name(::Lin) = :lin
-old_name(::Cheb) = :cheb
-old_name(::Spline) = :spli
-
 # ---------- #
 # Parameters #
 # ---------- #
 
 abstract BasisParams
+
 immutable ChebParams <: BasisParams
     n::Int
     a::Float64
@@ -61,21 +51,6 @@ function Base.writemime(io::IO, ::MIME"text/plain", p::LinParams)
 end
 
 typealias AnyParam Union(ChebParams, SplineParams, LinParams)
-
-# needed for the `convert(::Basis, ::Dict)` method below
-Base.convert(::Type{BasisParams}, p::Vector{Any}) =
-    length(p) == 3 && isa(p[1], Number) ? ChebParams(p...) :
-    length(p) == 3 ? SplineParams(p...) :
-    length(p) == 2 ? LinParams(p...) :
-    error("Unknown parameter type")
-
-old_name(::LinParams) = :lin
-old_name(::ChebParams) = :cheb
-old_name(::SplineParams) = :spli
-
-old_params(p::LinParams) = Any[p.breaks, p.evennum]
-old_params(p::ChebParams) = Any[p.n, p.a, p.b]
-old_params(p::SplineParams) = Any[p.breaks, p.evennum, p.k]
 
 # ---------- #
 # Basis Type #
@@ -123,50 +98,28 @@ function Basis(b1::Basis, bs::Basis...)  # fundef-esque method
     b = vcat(b1.b, [bs[i].b for i=1:Nb]...)
     params = vcat(b1.params, [bs[i].params for i=1:Nb]...)
     N = length(n)
-    Basis{N}(basistype, n, a, b, params)
+    Basis{N}(basistype, n, a, b, params)::Basis{Nb+1}
 end
 
 Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
 
-# construct basis out of multiple Params
-Basis(p::AnyParam, ps::AnyParam...) = Basis(Basis(p),
-                                            Basis[Basis(p) for p in ps]...)
+# construct basis out of multiple Params (type assertion for stability)
+Basis(p::AnyParam, ps::AnyParam...) =
+    Basis(Basis(p), Basis[Basis(p) for p in ps]...)::Basis{length(ps) + 1}
 
-
-# convert old API to new API
-function Base.convert(::Type{Basis}, b::Dict{Symbol, Any})
-    Basis{b[:d]}(b[:basetype], b[:n], b[:a], b[:b], b[:params])
-end
-
-# convert new API to old API
-function revert(b::Basis)
-    B = Dict{Symbol, Any}()
-    B[:d] = ndims(b)
-    B[:n] = b.n
-    B[:a] = b.a
-    B[:b] = b.b
-    B[:basetype] = Symbol[old_name(bt) for bt in b.basistype]
-    B[:params] = Any[old_params(p) for p in b.params]
-    B
-end
-
-# fundefn methods
+# fundefn methods -- TODO: re-write this to not use old fundefn routine
 Basis(bt::BasisFamily, n::Matrix, a::Matrix, b::Matrix, order::Int=3) =
     Basis(fundefn(old_name(bt), n, a, b, order))
 
 # the [:, :] makes into Matrix and we call the previous method
 Basis(bt::BasisFamily, n::Vector, a::Vector, b::Vector, order::Int=3) =
-    Basis(bt, n[:, :], a[:, :], b[:, :], order)
+    Basis(bt, n[:, :], a[:, :], b[:, :], order)::Basis{length(n)}
 
 
-# separating Basis
+# separating Basis -- just re construct it from the nth set of params
 function Base.getindex{N}(basis::Basis{N}, n::Int)
     n < 0 || n > N && error("n must be between 1 and $N")
-    return Basis{1}(basis.basistype[[n]],  # double `[[` to retain Vector
-                    basis.n[[n]],
-                    basis.a[[n]],
-                    basis.b[[n]],
-                    basis.params[[n]])
+    Basis(basis.params[n])::Basis{1}
 end
 
 # Define standard Julia methods for Basis
@@ -180,11 +133,16 @@ Base.size{N}(b::Basis{N}) = tuple(b.n...)::NTuple{N, Int64}
 
 # basis are equal if all fields of the basis are equal
 =={N}(b1::Basis{N}, b2::Basis{N}) =
-    all(map(nm->getfield(b1, nm) == getfield(b2, nm), fieldnames(b1)))
+    all(map(nm->getfield(b1, nm) == getfield(b2, nm), fieldnames(b1)))::Bool
 
-function nodes(b::Basis)  # funnode method
-    d = ndims(b)
-    xcoord = Vector{Float64}[nodes(b.params[j]) for j in 1:d]
-    x = gridmake(xcoord...)
+
+function nodes(b::Basis{1})
+    x = nodes(b.params[1])
+    (x, Vector{Float64}[x])
+end
+
+function nodes{N}(b::Basis{N})  # funnode method
+    xcoord = Vector{Float64}[nodes(b.params[j]) for j in 1:N]
+    x = gridmake(xcoord...)::Matrix{Float64}
     return x, xcoord
 end

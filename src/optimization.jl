@@ -1,5 +1,5 @@
 function golden_method(f::Function, a::AbstractVector, b::AbstractVector;
-                tol=eps()/10, maxit=1000)
+                       tol=eps()*10, maxit=1000)
 
     α1 = (3 - sqrt(5)) / 2
     α2 = 1 - α1
@@ -33,7 +33,7 @@ function golden_method(f::Function, a::AbstractVector, b::AbstractVector;
     x1, f1
 end
 
-function golden_method(f::Function, a::Real, b::Real; tol=eps()/10, maxit=1000)
+function golden_method(f::Function, a::Real, b::Real; tol=eps()*10, maxit=1000)
     x1, f1 = golden_method(f, [a], [b]; tol=tol, maxit=maxit)
     x1[1], f1[1]
 end
