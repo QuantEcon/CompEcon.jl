@@ -70,6 +70,30 @@ facts("Test Basis") do
         @fact size(b_both, 1) => n[1]
 
     end
+
+    context("test nodes") do
+        # extract nodes from individual basis
+        n1 = nodes(b1)[1]
+        n2 = nodes(b2)[1]
+
+        # extract product nodes as well as nodes along both dimensions using
+        # the 2d basis
+        n_both, (n1_both, n2_both) = nodes(b_both)
+
+        # test the nodes from basis 1 are what we expect, are the same as the
+        # corresponding nodes from the 2d basis and have the correct length
+        @fact n1 => collect(linspace(-3, 3, 9))
+        @fact n1 => n1_both
+        @fact length(n1) => b1.n[1]
+
+        # test that the nodes from basis 2 are the same as corresponding nodes
+        # from 2d basis and have correct length
+        @fact n2 => n2_both
+        @fact length(n2) => b2.n[1]
+
+        # verify that the nodes from combined 2d basis is correct size
+        @fact size(n_both) => (length(n1)*length(n2), 2)
+    end
 end
 
 end
