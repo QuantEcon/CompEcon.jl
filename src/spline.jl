@@ -69,7 +69,8 @@ function derivative_op(p::SplineParams, order=1)
     D = cell(abs(order), 1)
     if order > 0  # derivative
         temp = k ./ (augbreaks[k+1:n+k-1] - augbreaks[1:n-1])
-        D[1] = spdiags([-temp temp], 0:1, n-1, n)  # TODO: pick up here
+        D[1] = spdiags([-temp temp], 0:1, n-1, n)
+        # TODO: pick up here
     end
 end
 
