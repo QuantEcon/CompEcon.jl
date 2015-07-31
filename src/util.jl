@@ -114,8 +114,6 @@ function row_kron{S,T}(A::SparseMatrixCSC{S}, B::SparseMatrixCSC{T})
     sparse(I, J, V, nobsa, na*nb)
 end
 
-const dprod = row_kron
-
 # ckronxi.m -- DONE
 ckronxi{T<:Number}(b::Matrix{T}, c, ind=1:length(b)) = b \ c  # 23
 
@@ -144,7 +142,7 @@ function cdprodx(b::Array, c, ind=1:prod(size(b)))
     d = length(ind)
     a = b[ind[d]]
     for i=d-1:-1:1
-        a = dprod(b[ind[i]], a)
+        a = row_kron(b[ind[i]], a)
     end
     a = a * c
 end
