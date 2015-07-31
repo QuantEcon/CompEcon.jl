@@ -257,10 +257,7 @@ function lookup(table::Vector, x::Vector, p::Int=0)
                 jlo = jhi
                 jhi += inc
                 if jhi > n
-                    jhi = n+1 # TODO: verify this sould be n+1
-                    break
-                else
-                    inc += inc
+                    jhi = n+1
                 end
             end
         else
@@ -270,7 +267,7 @@ function lookup(table::Vector, x::Vector, p::Int=0)
                 jhi = jlo
                 jlo -= inc
                 if jlo < 1
-                    jlo = 0  # TODO: verify this should be 0
+                    jlo = 0
                     break
                 else
                     inc += inc
