@@ -196,23 +196,111 @@ function squeeze_trail(x::Array)
     squeeze(x, tuple(squeezers...))
 end
 
+# lookup.c -- DONE
+function lookup(table::Vector, x::Vector, p::Int=0)
+    n = length(table)
+    m = length(x)
+    out = fill(42, m)
 
-# lookup.m -- DONE
-function lookup(tabvals::Vector, x::Vector, endadj=0)
-    n = prod(size(x))
-    m = length(tabvals)
-    if endadj >= 2
-        m = m - sum(tabvals .== tabvals[end])
+    # lower enbound adjustment
+    numfirst = 1
+    t1 = table[1]
+    for i=2:n
+        if table[i] == t1
+            numfirst += 1
+        else
+            break
+        end
     end
 
-    ind = sortperm(vcat(tabvals[1:m], x))
-    temp = find(ind .>m)
-    j = ind[temp] - m
-    ind = reshape(temp .- (1:n), size(x)...)
-    ind[j] = ind[:]
-
-    if endadj == 1 || endadj == 3
-        ind[ind .== 0] = sum(tabvals .== tabvals[1])
+    # upper endpoint adjustment
+    tn = table[end]
+    if p >= 2
+        n -= 1
+        for i=n:-1:1
+            if table[i] == tn
+                n -= 1
+            else
+                break
+            end
+        end
     end
-    ind
+
+    n1 = n - 1
+    n2 = n - 1
+
+    if n - numfirst < 1  # only one unique value in table
+        if p == 1 || p == 3
+            for i=1:m
+                out[i] = numfirst
+            end
+        else
+            for i=1:m
+                if table[1] <= x[i]
+                    out[i] = numfirst
+                else
+                    out[i] = 0
+                end
+            end
+        end
+        return out
+    end
+
+    jlo = 1
+
+    for i=1:m
+        inc = 1
+        xi = x[i]
+        if xi >= table[jlo]
+            jhi = jlo + 1
+            while jhi <= n && xi >= table[jhi]
+                jlo = jhi
+                jhi += inc
+                if jhi > n
+                    jhi = n+1 # TODO: verify this sould be n+1
+                    break
+                else
+                    inc += inc
+                end
+            end
+        else
+            jhi = jlo
+            jlo -= 1
+            while jlo > 0 && xi < table[jlo]
+                jhi = jlo
+                jlo -= inc
+                if jlo < 1
+                    jlo = 0  # TODO: verify this should be 0
+                    break
+                else
+                    inc += inc
+                end
+            end
+        end
+
+        while jhi - jlo > 1
+            j = (jhi + jlo) >> 1
+            if xi >= table[j]
+                jlo = j
+            else
+                jhi = j
+            end
+        end
+
+        out[i] = jlo
+
+        if jlo < 1
+            jlo = 1
+            if p == 1 || p == 3
+                out[i] = numfirst
+            end
+        end
+
+        if jlo == n1
+            jlo = n2
+        end
+    end
+
+    out
+
 end
