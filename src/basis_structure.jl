@@ -103,9 +103,16 @@ function Base.convert(bst::Type{Direct}, bs::BasisStructure{Tensor},
     BasisStructure{Direct}(order, vals)
 end
 
+@inline _checkx{T<:Number}(N, x::AbstractVector{T}) =
+    N > 1 ? reshape(x, 1, N) : x
+
+@inline _checkx(N, x::AbstractMatrix) = x
+
+# TODO: add meaningful _checkx for the Tensor case
+
 # code to be run at the top of each `BasisStructure` constructor
 # it enforces compatibility of arguments and computes common items
-function check_basis_structure(basis::Basis, x, order, bformat)
+function check_basis_structure{N}(basis::Basis{N}, x, order, bformat)
     d = ndims(basis)
     if d > 1 && size(order, 2) == 1  # 62
         order = order * ones(Int, 1, d)  # 63
@@ -125,7 +132,9 @@ function check_basis_structure(basis::Basis, x, order, bformat)
         numbases = fill(1, 1, d)
     end
 
-    return d, m, order, minorder, numbases
+    x = _checkx(N, x)
+
+    return d, m, order, minorder, numbases, x
 end
 
 # quick function to take order+vals and return expanded form for 1d problems
@@ -134,18 +143,13 @@ function to_expanded(out_order::Matrix{Int}, vals::Array)
     BasisStructure{Expanded}(out_order, vals)
 end
 
-# TODO: this method is clobbered by the one for bformat=Tensor() below.
-#       need to decide if I want default to be Direct or Expanded. It would
-#       be much easier to do this if bformat were the second argument so
-#       that I could have `BasisStucture(basis)` give default and
-#       `BasisStructure(basis, bformat)` give alternate
 # method to construct BasisStructure in direct or expanded form based on
 # a matrix of `x` values  -- funbasex
 function BasisStructure{N}(basis::Basis{N}, ::Direct,
                            x::Array{Float64}=nodes(basis)[1], order=0)
 
-    d, m, order, minorder, numbases = check_basis_structure(basis, x, order,
-                                                            Direct())
+    d, m, order, minorder, numbases, x = check_basis_structure(basis, x, order,
+                                                               Direct())
     # 76-77
     out_order = minorder
     out_format = Direct()
@@ -188,8 +192,8 @@ end
 
 function BasisStructure{N,T}(basis::Basis{N}, ::Tensor,
                            x::Vector{Vector{T}}=nodes(basis)[2], order=0)
-    d, m, order, minorder, numbases = check_basis_structure(basis, x, order,
-                                                            Tensor())
+    d, m, order, minorder, numbases, x = check_basis_structure(basis, x, order,
+                                                               Tensor())
     out_order = minorder
     out_format = Tensor()
     vals = Array(AbstractMatrix, maximum(numbases), d)
