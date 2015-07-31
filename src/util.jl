@@ -9,6 +9,7 @@ function fix!{T <: Real}(x::Array{T}, out::Array{Int})
     end
     return out
 end
+
 fix{T <: Real}(x::Array{T}) = fix!(x, similar(x, Int))
 fix{T <: Real}(x::T) = int(x >= 0 ? floor(x) : ceil(x))
 
@@ -91,7 +92,6 @@ function row_kron{S,T}(A::SparseMatrixCSC{S}, B::SparseMatrixCSC{T})
         these_vals_a = vals_a[prev_last_a:next_last_a-1]
         these_vals_b = vals_b[prev_last_b:next_last_b-1]
 
-
         for ia in 1:length(these_cols_a)
             ca = these_cols_a[ia]
             for ib in 1:length(these_cols_b)
@@ -101,7 +101,6 @@ function row_kron{S,T}(A::SparseMatrixCSC{S}, B::SparseMatrixCSC{T})
                 push!(V, these_vals_a[ia] * these_vals_b[ib])
             end
         end
-
 
         prev_last_a = next_last_a
         prev_last_b = next_last_b
@@ -214,7 +213,7 @@ function lookup(table::Vector, x::Vector, p::Int=0)
     end
 
     # upper endpoint adjustment
-    tn = table[end]
+    tn = table[n]
     if p >= 2
         n -= 1
         for i=n:-1:1
