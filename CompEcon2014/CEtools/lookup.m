@@ -1,4 +1,5 @@
 % LOOKUP  Performs a table lookup.
+% FDSAFDSAFLASDJF LASDKFLASDFK
 % USAGE
 %   ind=lookup(tabvals,x,endadj);
 % INPUTS
@@ -13,9 +14,9 @@
 %
 % Optional endpoint adjustments:
 %   0: no adjustments
-%   1: values of x < min(tabvals) will return 
+%   1: values of x < min(tabvals) will return
 %        length(tabvals=tabvals(1))
-%   2: values of x > max(tabvals) will return 
+%   2: values of x > max(tabvals) will return
 %        m-length(tabvals=tabvals(end))
 %   3: adjustments 1 and 2 will be performed
 %

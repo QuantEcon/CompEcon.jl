@@ -9,7 +9,7 @@ immutable Tensor <: ABSR end
 immutable Direct <: ABSR end
 immutable Expanded <: ABSR end
 
-immutable BasisStructure{BST<:ABSR}
+type BasisStructure{BST<:ABSR}
     order::Matrix{Int}
     vals::Array{AbstractMatrix}
 end

@@ -192,7 +192,7 @@ end
 # Convenience `Interpoland` type #
 # ------------------------------- #
 
-immutable Interpoland{T,N,BST<:ABSR}
+type Interpoland{T,N,BST<:ABSR}
     basis::Basis{N}               # the basis -- can't change
     coefs::Vector{T}              # coefficients -- might change
     bstruct::BasisStructure{BST}  # BasisStructure at nodes of `b`
@@ -239,7 +239,7 @@ that calls gridmake for me. Then they can pass points along individual dimension
 function update_coefs!(interp::Interpoland, y::Vector)
     # leverage the BasisStructure we kept around
     c = funfitxy(interp.basis, interp.bstruct, y)[1]
-    copy!(interp.c, c)  # update c inplace b/c Interpoland is immutable
+    copy!(interp.c, c)  # update c inplace b/c Interpoland is type
 end
 
 # similar for a function -- just hand off to above

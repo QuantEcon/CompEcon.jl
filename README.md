@@ -218,19 +218,19 @@ immutable Lin <: BasisFamily end
 immutable Spline <: BasisFamily end
 
 abstract BasisParams
-immutable ChebParams <: BasisParams
+type ChebParams <: BasisParams
     n::Int
     a::Float64
     b::Float64
 end
 
-immutable SplineParams <: BasisParams
+type SplineParams <: BasisParams
     breaks::Vector{Float64}
     evennum::Int
     k::Int
 end
 
-immutable LinParams <: BasisParams
+type LinParams <: BasisParams
     breaks::Vector{Float64}
     evennum::Int
 end
@@ -238,12 +238,12 @@ end
 
 `BasisFamily` is an abstract type, whose subtypes are singletons that specify the class of functions in the basis.
 
-`BasisParams` is an abstract type, whose subtypes are immutable types that hold all information needed to construct the Basis of a particular class
+`BasisParams` is an abstract type, whose subtypes are type types that hold all information needed to construct the Basis of a particular class
 
 Then we have the central `Basis` type:
 
 ```julia
-immutable Basis{N}
+type Basis{N}
     basistype::Vector{BasisFamily}  # Basis family
     n::Vector{Int}                  # number of points and/or basis functions
     a::Vector{Float64}              # lower bound of domain
@@ -282,7 +282,7 @@ immutable Expanded <: ABSR end
 `AbstractBasisStructureRep` is an abstract types, whose subtypes are singletons that specify how the basis matrices are stored. To understand how they are different, we need to see the structure of the `BasisStructure` type:
 
 ```julia
-immutable BasisStructure{BST<:ABSR}
+type BasisStructure{BST<:ABSR}
     order::Matrix{Int}
     vals::Array{AbstractMatrix}
 end
@@ -302,7 +302,7 @@ The content inside `vals` will vary based on the type Parameter `BST<:AbstractBa
 Finally the convenient `Interpoland` type:
 
 ```julia
-immutable Interpoland{T<:FloatingPoint,N,BST<:ABSR}
+type Interpoland{T<:FloatingPoint,N,BST<:ABSR}
     basis::Basis{N}
     coefs::Vector{T}
     bstruct::BasisStructure{BST}
