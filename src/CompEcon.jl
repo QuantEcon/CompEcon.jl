@@ -67,6 +67,8 @@ nodes(::PT)
 
 using Compat
 
+import Base: ==
+
 export golden_method
 
 # types

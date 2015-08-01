@@ -15,7 +15,7 @@ typealias AnyFamily Union(Cheb, Lin, Spline)
 
 abstract BasisParams
 
-immutable ChebParams <: BasisParams
+type ChebParams <: BasisParams
     n::Int
     a::Float64
     b::Float64
@@ -27,7 +27,7 @@ function Base.writemime(io::IO, ::MIME"text/plain", p::ChebParams)
     print(m)
 end
 
-immutable SplineParams <: BasisParams
+type SplineParams <: BasisParams
     breaks::Vector{Float64}
     evennum::Int
     k::Int
@@ -43,7 +43,7 @@ function Base.writemime(io::IO, ::MIME"text/plain", p::SplineParams)
     print(m)
 end
 
-immutable LinParams <: BasisParams
+type LinParams <: BasisParams
     breaks::Vector{Float64}
     evennum::Int
 end
@@ -76,7 +76,7 @@ end
 # Basis Type #
 # ---------- #
 
-immutable Basis{N}
+type Basis{N}
     basistype::Vector{BasisFamily}  # Basis family
     n::Vector{Int}                  # number of points and/or basis functions
     a::Vector{Float64}              # lower bound of domain
