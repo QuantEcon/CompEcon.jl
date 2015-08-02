@@ -35,9 +35,10 @@ old_params(p::SplineParams) = Any[p.breaks, p.evennum, p.k]
 
 # convert old API to new API
 function Base.convert(::Type{Basis}, b::Dict{Symbol, Any})
-    Basis{b[:d]}(b[:basetype], b[:n], b[:a], b[:b], b[:params])
+    btype = map(x->convert(BasisFamily, x), b[:basetype])
+    param = BasisParams[convert(BasisParams, x) for x in b[:params]]
+    Basis(btype, b[:n], b[:a], b[:b], param)
 end
-
 
 # convert new API to old API
 function revert(b::Basis)

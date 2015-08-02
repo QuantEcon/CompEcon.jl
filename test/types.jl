@@ -13,14 +13,12 @@ facts("Test subtype structure") do
     context("Basis families") do
         for T in [Cheb, Lin, Spline]
             @fact T <: BasisFamily --> true
-            @fact T <: CompEcon.AnyFamily --> true
         end
     end
 
     context("params") do
         for T in [ChebParams, SplineParams, LinParams]
             @fact T <: BasisParams --> true
-            @fact T <: CompEcon.AnyParam --> true
         end
     end
 
