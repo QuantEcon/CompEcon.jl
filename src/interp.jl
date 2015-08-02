@@ -239,7 +239,7 @@ that calls gridmake for me. Then they can pass points along individual dimension
 function update_coefs!(interp::Interpoland, y::Vector)
     # leverage the BasisStructure we kept around
     c = funfitxy(interp.basis, interp.bstruct, y)[1]
-    copy!(interp.c, c)  # update c inplace b/c Interpoland is type
+    copy!(interp.coefs, c)  # update c inplace b/c Interpoland is type
 end
 
 # similar for a function -- just hand off to above
