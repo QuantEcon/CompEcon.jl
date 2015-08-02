@@ -7,8 +7,6 @@ immutable Cheb <: BasisFamily end
 immutable Lin <: BasisFamily end
 immutable Spline <: BasisFamily end
 
-typealias AnyFamily Union(Cheb, Lin, Spline)
-
 # ---------- #
 # Parameters #
 # ---------- #
@@ -34,7 +32,7 @@ type SplineParams <: BasisParams
 end
 
 # constructor to take a, b, n and form linspace for breaks
-SplineParams(n::Int, a::Real, b::Real, k::Int) =
+SplineParams(n::Int, a::Real, b::Real, k::Int=3) =
     SplineParams(collect(linspace(a, b, n)), 0, k)
 
 function Base.writemime(io::IO, ::MIME"text/plain", p::SplineParams)
@@ -58,30 +56,28 @@ function Base.writemime(io::IO, ::MIME"text/plain", p::LinParams)
     print(m)
 end
 
-typealias AnyParam Union(ChebParams, SplineParams, LinParams)
-
 for (T, TP) in [(Cheb, ChebParams), (Lin, LinParams), (Spline, SplineParams)]
     @eval _param(::$(T)) = $TP
     @eval _param(::Type{$(T)}) = $TP
 end
 
 # params of same type are equal if all their fields are equal
-=={T<:AnyParam}(p1::T, p2::T) =
+=={T<:BasisParams}(p1::T, p2::T) =
     all(map(nm->getfield(p1, nm) == getfield(p2, nm), fieldnames(p1)))::Bool
 
 # Bases of different dimension can't be equal
-=={T1<:AnyParam,T2<:AnyParam}(::T1, ::T2) = false
+=={T1<:BasisParams,T2<:BasisParams}(::T1, ::T2) = false
 
 # ---------- #
 # Basis Type #
 # ---------- #
 
-type Basis{N}
-    basistype::Vector{BasisFamily}  # Basis family
-    n::Vector{Int}                  # number of points and/or basis functions
-    a::Vector{Float64}              # lower bound of domain
-    b::Vector{Float64}              # upper bound of domain
-    params::Vector{BasisParams}     # params to construct basis
+type Basis{N, BF<:BasisFamily, BP<:BasisParams}
+    basistype::Vector{BF}  # Basis family
+    n::Vector{Int}         # number of points and/or basis functions
+    a::Vector{Float64}     # lower bound of domain
+    b::Vector{Float64}     # upper bound of domain
+    params::Vector{BP}     # params to construct basis
 end
 
 function Base.writemime{N}(io::IO, ::MIME"text/plain", b::Basis{N})
@@ -93,24 +89,28 @@ function Base.writemime{N}(io::IO, ::MIME"text/plain", b::Basis{N})
 end
 
 # constructor that takes all arguments and ensures each has N elemnets
-function Basis(basistype::Vector{BasisFamily}, n::Vector{Int},
-               a::Vector{Float64}, b::Vector{Float64},
-               params::Vector{BasisParams})
+function Basis{BF<:BasisFamily, BP<:BasisParams}(basistype::Vector{BF},
+                                                 n::Vector{Int},
+                                                 a::Vector{Float64},
+                                                 b::Vector{Float64},
+                                                 params::Vector{BP})
     N = length(basistype)
     @assert all(map(length, Any[n, a, b, params]) .== N)
-    Basis{N}(basistype, n, a, b, params)
+    Basis{N,BF,BP}(basistype, n, a, b, params)
 end
 
 # univariate basis. Helper to wrap all args in arrays
-Basis(bt::BasisFamily, n::Int, a::Float64, b::Float64, params::BasisParams) =
-    Basis{1}([bt], [n], [a], [b], [params])
+function Basis{BF<:BasisFamily, BP<:BasisParams}(bt::BF, n::Int, a::Float64,
+                                                 b::Float64, params::BP)
+    Basis{1,BF,BP}([bt], [n], [a], [b], [params])
+end
 
 # constructor to allow `Basis(Spline, breaks, evennum, k)` instead of just
 # `Basis(Spline(), breaks, evennum, k)`
 Basis{BT<:BasisFamily}(::Type{BT}, args...) = Basis(BT(), args...)
 
-# combining basis
-function Basis(b1::Basis, bs::Basis...)  # fundef-esque method
+# combining basis -- fundef-esque method
+function Basis(b1::Basis, bs::Basis...)
     Nb = length(bs)
     basistype = vcat(b1.basistype, [bs[i].basistype for i=1:Nb]...)
     n = vcat(b1.n, [bs[i].n for i=1:Nb]...)
@@ -118,17 +118,22 @@ function Basis(b1::Basis, bs::Basis...)  # fundef-esque method
     b = vcat(b1.b, [bs[i].b for i=1:Nb]...)
     params = vcat(b1.params, [bs[i].params for i=1:Nb]...)
     N = length(n)
-    Basis{N}(basistype, n, a, b, params)::Basis{Nb+1}
+
+    # determine if BF and BP type are concrete or use fall-back abstracts
+    BF1, BP1 = map(x->typeof(x[1]), Any[b1.basistype, b1.params])
+    BF = all(map(x->isa(x, BF1), basistype[2:end])) ? BF1 : BasisFamily
+    BP = all(map(x->isa(x, BP1), params[2:end])) ? BP1 : BasisParams
+    Basis{N,BF,BP}(basistype, n, a, b, params)::Basis{N,BF,BP}
 end
 
 Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
 
 # construct basis out of multiple Params (type assertion for stability)
-Basis(p::AnyParam, ps::AnyParam...) =
+Basis(p::BasisParams, ps::BasisParams...) =
     Basis(Basis(p), Basis[Basis(p) for p in ps]...)::Basis{length(ps) + 1}
 
 # fundefn type method
-Basis{T<:AnyFamily}(bt::T, n::Vector, a::Vector, b::Vector) =
+Basis{T<:BasisFamily}(bt::T, n::Vector, a::Vector, b::Vector) =
     Basis(map(_param(T), n, a, b)...)::Basis{length(n)}
 
 # special method for Spline that adds `k` argument

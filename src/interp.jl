@@ -208,7 +208,7 @@ function Interpoland(basis::Basis, x, y)
     Interpoland(basis, c, bs)
 end
 
-Interpoland(p::AnyParam, x, y) = Interpoland(Basis(p), x, y)
+Interpoland(p::BasisParams, x, y) = Interpoland(Basis(p), x, y)
 
 function Interpoland(basis::Basis, f::Function)
     # TODO: Decide if I want to do this or if I would rather do
@@ -220,7 +220,7 @@ function Interpoland(basis::Basis, f::Function)
     Interpoland(basis, x, y)
 end
 
-Interpoland(p::AnyParam, f::Function) = Interpoland(Basis(p), f)
+Interpoland(p::BasisParams, f::Function) = Interpoland(Basis(p), f)
 
 # let funeval take care of order and such. This just exists to make it so the
 # user doesn't have to keep track of the coefficient vector

@@ -17,7 +17,7 @@ facts("Test Basis") do
     b1, b2 = map(Basis, bt, n, a, b, params)
 
     # directly construct multivariate basis using (default) inner constructor
-    b_both = Basis{2}(bt, n, a, b, params)
+    b_both = Basis{2,BasisFamily,BasisParams}(bt, n, a, b, params)
 
     # should be equivalent to Basis(b1, b1)
     b_spline2d = Basis(Spline(), [n[1], n[1]], [a[1], a[1]], [b[1], b[1]], [1, 1])
@@ -56,6 +56,11 @@ facts("Test Basis") do
 
         # test that basis of different dimensions are not equal
         @fact ==(b_spline2d, b1) --> false
+
+        # test concrete types come out when possible
+        @fact isa(Basis(b1, b1), Basis{2,Spline,SplineParams}) --> true
+        @fact isa(Basis(b2, b2), Basis{2,Cheb,ChebParams}) --> true
+        @fact isa(Basis(b2, b2, b1), Basis{3,BasisFamily,BasisParams}) --> true
     end
 
     context("getindex and combining preserves basis") do
