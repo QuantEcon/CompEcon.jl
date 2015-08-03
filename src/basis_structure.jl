@@ -103,15 +103,17 @@ function Base.convert(bst::Type{Direct}, bs::BasisStructure{Tensor},
     BasisStructure{Direct}(order, vals)
 end
 
-@inline _checkx(N, x::AbstractMatrix) = 
-    size(x,2) == N ? x : error("x is incompatible with basis: dimension of basis and # of columns of x must agree")
+@inline _checkx(N, x::AbstractMatrix) =
+    size(x, 2) == N ? x :
+                      error("x is incompatible with basis: dimension of basis and # of columns of x must agree")
 
 @inline _checkx{T<:Number}(N, x::AbstractVector{T}) =
-    N == 1 ? x : 
+    N == 1 ? x :
              length(x) == N ? reshape(x, 1, N) : error("x is incompatible with basis: dimension of basis and # of elements of x must agree")
 
-@inline _checkx{T}(N, x::Vector{Vector{T}}) = 
-    length(x) == N ? x : error("x is incompatible with basis: dimension of basis and # of vectors in x must agree")
+@inline _checkx{T}(N, x::Vector{Vector{T}}) =
+    length(x) == N ? x :
+                     error("x is incompatible with basis: dimension of basis and # of vectors in x must agree")
 
 # code to be run at the top of each `BasisStructure` constructor
 # it enforces compatibility of arguments and computes common items
