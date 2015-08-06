@@ -26,6 +26,18 @@ facts("Test Basis Structure Representations") do
                  convert(Expanded, convert(Direct, Φ_tensor))) --> true
     end
 
+    context("test _vals_type") do
+        for (TF, TM) in [(Spline, Base.SparseMatrix.SparseMatrixCSC{Float64,Int}),
+                         (Lin, Base.SparseMatrix.SparseMatrixCSC{Float64,Int}),
+                         (Cheb, Matrix{Float64})]
+            @fact CompEcon._vals_type(TF) --> TM
+            @fact CompEcon._vals_type(TF()) --> TM
+        end
+
+        @fact CompEcon._vals_type(CompEcon.BasisFamily) --> AbstractMatrix{Float64}
+
+    end
+
     context("constructors") do
         nothing
     end
