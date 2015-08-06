@@ -9,7 +9,7 @@ immutable Tensor <: ABSR end
 immutable Direct <: ABSR end
 immutable Expanded <: ABSR end
 
-type BasisStructure{BST<:ABSR}
+type BasisStructure{BST<:ABSR}#, TM<:AbstractMatrix}
     order::Matrix{Int}
     vals::Array{AbstractMatrix}
 end
@@ -117,29 +117,28 @@ end
 
 # code to be run at the top of each `BasisStructure` constructor
 # it enforces compatibility of arguments and computes common items
-function check_basis_structure{N}(basis::Basis{N}, x, order, bformat)
-    d = ndims(basis)
-    if d > 1 && size(order, 2) == 1  # 62
-        order = order * ones(Int, 1, d)  # 63
+function check_basis_structure{N}(basis::Basis{N}, x, order)
+    if N > 1 && size(order, 2) == 1  # 62
+        order = order * ones(Int, 1, N)  # 63
     end  # 64
 
-    if d == 1 && isa(order, Int)
+    if N == 1 && isa(order, Int)
         order = fill(order, 1, 1)
     end
 
     # initialize basis structure (66-74)
     m = size(order, 1)
     if m > 1
-        minorder = fill(minimum(order), 1, d)
+        minorder = fill(minimum(order), 1, N)
         numbases = (maximum(order) - minorder) + 1
     else
-        minorder = order + zeros(Int, 1, d)
-        numbases = fill(1, 1, d)
+        minorder = order + zeros(Int, 1, N)
+        numbases = fill(1, 1, N)
     end
 
     x = _checkx(N, x)
 
-    return d, m, order, minorder, numbases, x
+    return m, order, minorder, numbases, x
 end
 
 # quick function to take order+vals and return expanded form for 1d problems
@@ -153,15 +152,14 @@ end
 function BasisStructure{N}(basis::Basis{N}, ::Direct,
                            x::Array{Float64}=nodes(basis)[1], order=0)
 
-    d, m, order, minorder, numbases, x = check_basis_structure(basis, x, order,
-                                                               Direct())
+    m, order, minorder, numbases, x = check_basis_structure(basis, x, order)
     # 76-77
     out_order = minorder
     out_format = Direct()
-    vals = Array(AbstractMatrix, maximum(numbases), d)
+    vals = Array(AbstractMatrix, maximum(numbases), N)
 
     # now do direct form, will convert to expanded later if needed
-    for j=1:d
+    for j=1:N
         # 126-130
         if (m > 1)
             orderj = unique(order[:, j])
@@ -178,7 +176,7 @@ function BasisStructure{N}(basis::Basis{N}, ::Direct,
         end
     end
 
-    # if d == 1, switch to expanded format and return it directly
+    # if N == 1, switch to expanded format and return it directly
     # 140-145
     if N == 1  # 1 dimension
         return to_expanded(order, vals)
@@ -197,14 +195,13 @@ end
 
 function BasisStructure{N,T}(basis::Basis{N}, ::Tensor,
                            x::Vector{Vector{T}}=nodes(basis)[2], order=0)
-    d, m, order, minorder, numbases, x = check_basis_structure(basis, x, order,
-                                                               Tensor())
+    m, order, minorder, numbases, x = check_basis_structure(basis, x, order)
     out_order = minorder
     out_format = Tensor()
-    vals = Array(AbstractMatrix, maximum(numbases), d)
+    vals = Array(AbstractMatrix, maximum(numbases), N)
 
     # construct tensor base
-    for j=1:d
+    for j=1:N
         # 113-117
         if (m > 1)
             orderj = unique(order[:, j])
