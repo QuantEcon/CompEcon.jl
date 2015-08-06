@@ -11,23 +11,26 @@ facts("Test Basis Structure Representations") do
                ChebParams(7, 1e-4, 10.0))
 
     # construct evaluation points
-    x1 = linspace(a[1],b[1],15)
-    x2 = linspace(a[2],b[2],10)
-    X = gridmake(x1, x2)
+    X, x12 = nodes(mb)
 
-    # construct tensor basis-structure representation
-    PHI_tensor = BasisStructure(mb, Tensor(), X)
+    # construct expanded, direct, and tensor basis-structure representation
+    Φ_expanded = CompEcon.BasisStructure(mb, CompEcon.Expanded(), X)
+    Φ_direct = CompEcon.BasisStructure(mb, CompEcon.Direct(), X)
+    Φ_tensor = CompEcon.BasisStructure(mb, CompEcon.Tensor(), x12)
 
-    # construct direct basis-structure representation
-    PHI_direct = BasisStructure(mb, Direct(), X)
-
-    # construct direct basis-structure representation
-    PHI_expanded = BasisStructure(mb, Expanded(), X)
-
-
-    convert(bst::Type{Expanded}, bs::BasisStructure{Direct})
-
-    context("constructors") do
+    context("test convert methods") do
+        @fact Φ_direct == convert(Direct, Φ_tensor) --> true
+        @fact Φ_expanded == convert(Expanded, Φ_direct) --> true
+        @fact Φ_expanded == convert(Expanded, Φ_tensor) --> true
+        @fact ==(Φ_expanded,
+                 convert(Expanded, convert(Direct, Φ_tensor))) --> true
     end
 
-end
+    context("constructors") do
+        nothing
+    end
+
+end  # facts
+
+
+end  # module
