@@ -73,9 +73,9 @@ end
 end
 
 # common checks for all convert methods
-function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
+function check_convert(bs::BasisStructure, order)
     d = ndims(bs)
-    numbas, d1 = size(bs.order)
+    numbas, d1 = size(order)
 
     d1 != d && error("ORDER incompatible with basis functions")  # 35-37
 
@@ -86,11 +86,36 @@ function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
     return d, numbas, d1
 end
 
-# code to be run at the top of each `BasisStructure` constructor
-# it enforces compatibility of arguments and computes common items
-function check_basis_structure{N}(basis::Basis{N}, x, order)
+check_basis_structure(N, x, order::Int) =
+    check_basis_structure(N, x, fill(order, 1, N))
+
+"""
+Do common transformations to all constructor of `BasisStructure`
+
+##### Arguments
+
+- `N::Int`: The number of dimensions in the corresponding `Basis`
+- `x::Array{Float64}`: The points for which the `BasisStructure` should be
+constructed
+- `order::Array{Int}`: The order of evaluation for each dimension of the basis
+
+##### Returns
+
+- `m::Int`: the total number of derivative order basis functions to compute.
+This will be the number of rows in the matrix form of `order`
+- `order::Matrix{Int}`: A `m × N` matrix that, for each of the `m` desired
+specifications, gives the derivative order along all `N` dimensions
+- `minorder::Matrix{Int}`: A `1 × N` matrix specifying the minimum desired
+derivative order along each dimension
+- `numbases::Matrix{Int}`: A `1 × N` matrix specifying the total number of
+distinct derivative orders along each dimension
+- `x::Array{Float64}`: The properly transformed points at which to evaluate
+the basis
+
+"""
+function check_basis_structure(N::Int, x, order::Array{Int})
     if N > 1 && size(order, 2) == 1  # 62
-        order = order * ones(Int, 1, N)  # 63
+        order = reshape(order, 1, N)
     end  # 64
 
     if N == 1 && isa(order, Int)
@@ -98,10 +123,10 @@ function check_basis_structure{N}(basis::Basis{N}, x, order)
     end
 
     # initialize basis structure (66-74)
-    m = size(order, 1)
+    m = size(order, 1)  # by this time order should be a matrix
     if m > 1
-        minorder = fill(minimum(order), 1, N)
-        numbases = (maximum(order) - minorder) + 1
+        minorder = minimum(order, 1)
+        numbases = (maximum(order, 1) - minorder) + 1
     else
         minorder = order + zeros(Int, 1, N)
         numbases = fill(1, 1, N)
@@ -131,10 +156,9 @@ _vals_type{TF<:BasisFamily}(::TF) = _vals_type(TF)
 Base.convert{T<:ABSR}(::Type{T}, bs::BasisStructure{T}) = bs
 
 # funbconv from direct to expanded
-function Base.convert{TM}(bst::Type{Expanded}, bs::BasisStructure{Direct,TM},
+function Base.convert{TM}(::Type{Expanded}, bs::BasisStructure{Direct,TM},
                       order=fill(0, 1, size(bs.order, 2)))
-    d, numbas, d1 = check_convert(bst, bs, order)
-    n = prod([size(bs.vals[1, j], 2) for j=1:d])
+    d, numbas, d1 = check_convert(bs, order)
 
     vals = Array(TM, numbas)
 
@@ -149,11 +173,9 @@ function Base.convert{TM}(bst::Type{Expanded}, bs::BasisStructure{Direct,TM},
 end
 
 # funbconv from tensor to expanded
-function Base.convert{TM}(bst::Type{Expanded}, bs::BasisStructure{Tensor,TM},
+function Base.convert{TM}(::Type{Expanded}, bs::BasisStructure{Tensor,TM},
                       order=fill(0, 1, size(bs.order, 2)))
-    d, numbas, d1 = check_convert(bst, bs, order)
-    m = prod([size(bs.vals[1, j], 1) for j=1:d])
-    n = prod([size(bs.vals[1, j], 2) for j=1:d])
+    d, numbas, d1 = check_convert(bs, order)
 
     vals = Array(TM, numbas)
 
@@ -173,11 +195,11 @@ end
 #       plan on doing it much, this will do for now. The basic point is that
 #       we need to expand the rows of each element of `vals` so that all of
 #       them have prod([size(v, 1) for v in bs.vals])) rows.
-function Base.convert{TM}(bst::Type{Direct}, bs::BasisStructure{Tensor,TM},
+function Base.convert{TM}(::Type{Direct}, bs::BasisStructure{Tensor,TM},
                       order=fill(0, 1, size(bs.order, 2)))
-    d, numbas, d1 = check_convert(bst, bs, order)
+    d, numbas, d1 = check_convert(bs, order)
     vals = Array(TM, numbas, d)
-    raw_ind = cell(1, d)  # 78
+    raw_ind = Array(Vector{Int}, d)
 
     for j=1:d
         for i=1:size(bs.vals, 1)
@@ -215,7 +237,7 @@ end
 function BasisStructure{N,BF}(basis::Basis{N,BF}, ::Direct,
                               x::Array{Float64}=nodes(basis)[1], order=0)
 
-    m, order, minorder, numbases, x = check_basis_structure(basis, x, order)
+    m, order, minorder, numbases, x = check_basis_structure(N, x, order)
     # 76-77
     out_order = minorder
     out_format = Direct()
@@ -259,7 +281,7 @@ end
 
 function BasisStructure{N,BF,T}(basis::Basis{N,BF}, ::Tensor,
                            x::Vector{Vector{T}}=nodes(basis)[2], order=0)
-    m, order, minorder, numbases, x = check_basis_structure(basis, x, order)
+    m, order, minorder, numbases, x = check_basis_structure(N, x, order)
     out_order = minorder
     out_format = Tensor()
     val_type = _vals_type(BF)
