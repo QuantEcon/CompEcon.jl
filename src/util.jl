@@ -17,10 +17,10 @@ fix{T <: Real}(x::T) = int(x >= 0 ? floor(x) : ceil(x))
 ckron(A::Array, B::Array) = kron(A, B)
 ckron(arrays::Array...) = reduce(kron, arrays)
 
-gridmake(v::Vector) = v
+gridmake(v::AbstractVector) = v
 
 # gridmake.m -- DONE
-function gridmake{T}(arrays::Vector{T}...)
+function gridmake{T}(arrays::AbstractVector{T}...)
     # TODO: this gridmake works, but I don't like it.
     shapes = Int[size(e, 1) for e in arrays]
 
