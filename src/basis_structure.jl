@@ -38,6 +38,40 @@ function =={BST<:ABSR,TM<:AbstractMatrix}(b1::BasisStructure{BST,TM},
     b1.order == b2.order && b1.vals == b2.vals
 end
 
+# -------------- #
+# Internal Tools #
+# -------------- #
+
+@inline function _checkx(N, x::AbstractMatrix)
+    size(x, 2) != N && error("Basis is $N dimensional, x must have $N columns")
+    x
+end
+
+@inline function _checkx{T<:Number}(N, x::AbstractVector{T})
+    # if we have a 1d basis, we can evaluate at each point
+    if N == 1
+        return x
+    end
+
+    # If Basis is > 1d, one evaluation point and reshape to (1,N) if possible...
+    if length(x) == N
+        return reshape(x, 1, N)
+    end
+
+    # ... or throw an error
+    error("Basis is $N dimensional, x must have $N elements")
+end
+
+@inline function _checkx{T<:Number}(N, x::Vector{Vector{T}})
+    # for BasisStructure{Tensor} family. Need one vector per dimension
+    if length(x) == N
+        return x
+    end
+
+    # otherwise throw an error
+    error("Basis is $N dimensional, need one Vector per dimension")
+end
+
 # common checks for all convert methods
 function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
     d = ndims(bs)
@@ -52,12 +86,49 @@ function check_convert{BST<:ABSR}(::Type{BST}, bs::BasisStructure, order)
     return d, numbas, d1
 end
 
+# code to be run at the top of each `BasisStructure` constructor
+# it enforces compatibility of arguments and computes common items
+function check_basis_structure{N}(basis::Basis{N}, x, order)
+    if N > 1 && size(order, 2) == 1  # 62
+        order = order * ones(Int, 1, N)  # 63
+    end  # 64
+
+    if N == 1 && isa(order, Int)
+        order = fill(order, 1, 1)
+    end
+
+    # initialize basis structure (66-74)
+    m = size(order, 1)
+    if m > 1
+        minorder = fill(minimum(order), 1, N)
+        numbases = (maximum(order) - minorder) + 1
+    else
+        minorder = order + zeros(Int, 1, N)
+        numbases = fill(1, 1, N)
+    end
+
+    x = _checkx(N, x)
+
+    return m, order, minorder, numbases, x
+end
+
+# give the type of the `vals` field based on the family type parameter of the
+# corresponding basis. `Spline` and `Lin` use sparse, `Cheb` uses dense
+# a hybrid must fall back to a generic AbstractMatrix{Float64}
+_vals_type(::Type{Spline}) = Base.SparseMatrix.SparseMatrixCSC{Float64,Int}
+_vals_type(::Type{Lin}) = Base.SparseMatrix.SparseMatrixCSC{Float64,Int}
+_vals_type(::Type{Cheb}) = Matrix{Float64}
+_vals_type(::Type{BasisFamily}) = AbstractMatrix{Float64}
+
+# conveneince method so we can pass an instance of the type also
+_vals_type{TF<:BasisFamily}(::TF) = _vals_type(TF)
+
+# --------------- #
+# convert methods #
+# --------------- #
+
 # no-op
 Base.convert{T<:ABSR}(::Type{T}, bs::BasisStructure{T}) = bs
-
-# TODO: add two type params to each of these converts that tracks the
-#       second type param in BasisStructure so that I can properly allocate
-#       vals.
 
 # funbconv from direct to expanded
 function Base.convert{TM}(bst::Type{Expanded}, bs::BasisStructure{Direct,TM},
@@ -128,43 +199,9 @@ function Base.convert{TM}(bst::Type{Direct}, bs::BasisStructure{Tensor,TM},
     BasisStructure{Direct,TM}(order, vals)
 end
 
-@inline _checkx(N, x::AbstractMatrix) =
-    size(x, 2) == N ? x :
-                      error("x is incompatible with basis: dimension of basis and # of columns of x must agree")
-
-@inline _checkx{T<:Number}(N, x::AbstractVector{T}) =
-    N == 1 ? x :
-             length(x) == N ? reshape(x, 1, N) : error("x is incompatible with basis: dimension of basis and # of elements of x must agree")
-
-@inline _checkx{T}(N, x::Vector{Vector{T}}) =
-    length(x) == N ? x :
-                     error("x is incompatible with basis: dimension of basis and # of vectors in x must agree")
-
-# code to be run at the top of each `BasisStructure` constructor
-# it enforces compatibility of arguments and computes common items
-function check_basis_structure{N}(basis::Basis{N}, x, order)
-    if N > 1 && size(order, 2) == 1  # 62
-        order = order * ones(Int, 1, N)  # 63
-    end  # 64
-
-    if N == 1 && isa(order, Int)
-        order = fill(order, 1, 1)
-    end
-
-    # initialize basis structure (66-74)
-    m = size(order, 1)
-    if m > 1
-        minorder = fill(minimum(order), 1, N)
-        numbases = (maximum(order) - minorder) + 1
-    else
-        minorder = order + zeros(Int, 1, N)
-        numbases = fill(1, 1, N)
-    end
-
-    x = _checkx(N, x)
-
-    return m, order, minorder, numbases, x
-end
+# ------------ #
+# Constructors #
+# ------------ #
 
 # quick function to take order+vals and return expanded form for 1d problems
 function to_expanded(out_order::Matrix{Int}, vals::Array)
@@ -172,14 +209,6 @@ function to_expanded(out_order::Matrix{Int}, vals::Array)
     BasisStructure{Expanded,eltype(vals)}(out_order, vals)
 end
 
-# give the type of the `vals` field based on the family type parameter of the
-# corresponding basis. `Spline` and `Lin` use sparse, `Cheb` uses dense
-# a hybrid must fall back to a generic AbstractMatrix{Float64}
-_vals_type(::Type{Spline}) = Base.SparseMatrix.SparseMatrixCSC{Float64,Int}
-_vals_type(::Type{Lin}) = Base.SparseMatrix.SparseMatrixCSC{Float64,Int}
-_vals_type(::Type{Cheb}) = Matrix{Float64}
-_vals_type(::Type{BasisFamily}) = AbstractMatrix{Float64}
-_vals_type{TF<:BasisFamily}(::TF) = _vals_type(TF)
 
 # method to construct BasisStructure in direct or expanded form based on
 # a matrix of `x` values  -- funbasex
@@ -257,10 +286,3 @@ function BasisStructure{N,BF,T}(basis::Basis{N,BF}, ::Tensor,
     N == 1 ? to_expanded(order, vals) :
              BasisStructure{Tensor,val_type}(out_order, vals)
 end
-
-# add method to funbasex that calls the above constructors
-funbasex(basis::Basis, x=nodes(basis)[1], order=0, bformat::ABSR=Direct()) =
-    BasisStructure(basis, x, order, bformat)
-
-funbase(basis::Basis, x=nodes(basis)[1], order=fill(0, 1, ndims(basis))) =
-    funbasex(basis, x, order, Expanded()).vals[1]
