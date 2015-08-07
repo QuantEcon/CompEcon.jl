@@ -208,13 +208,14 @@ type Interpoland{T,N,BST<:ABSR}
     bstruct::BasisStructure{BST}  # BasisStructure at nodes of `b`
 end
 
-function Interpoland(basis::Basis, bs::BasisStructure, y)
-    c, bs = funfitxy(basis, bs, y)
+function Interpoland(basis::Basis, bs::BasisStructure, y::AbstractVector)
+    c = get_coefs(basis, bs, y)[:, 1]  # get first (only) column as `Vector`
     Interpoland(basis, c, bs)
 end
 
-function Interpoland(basis::Basis, x, y)
+function Interpoland(basis::Basis, x::Array, y::AbstractVector)
     c, bs = funfitxy(basis, x, y)
+    c = c[:, 1]
     Interpoland(basis, c, bs)
 end
 
@@ -249,7 +250,7 @@ that calls gridmake for me. Then they can pass points along individual dimension
 function update_coefs!(interp::Interpoland, y::Vector)
     # leverage the BasisStructure we kept around
     c = funfitxy(interp.basis, interp.bstruct, y)[1]
-    copy!(interp.coefs, c)  # update c inplace b/c Interpoland is type
+    copy!(interp.coefs, c)  # update c inplace b/c Interpoland is immutable
 end
 
 # similar for a function -- just hand off to above
