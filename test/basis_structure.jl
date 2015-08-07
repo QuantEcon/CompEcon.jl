@@ -89,7 +89,7 @@ facts("Test Basis Structure Representations") do
             out1 = CompEcon.check_basis_structure(2, xm, order1)
             @fact out1 --> (1, order1, order1, [1 1], xm)
 
-            # test the method for order::Int
+            # test when order::Int
             @fact CompEcon.check_basis_structure(2, xm, 0) --> out1
 
             # test the reshape(order, 1, N) branch (isa(order, Vector))
@@ -107,9 +107,8 @@ facts("Test Basis Structure Representations") do
 
 
             order2 = zeros(Int, 1, 5)  # should throw error
-            @fact_throws DimensionMismatch CompEcon.check_basis_structure(2,
-                                                                          X,
-                                                                          order2)
+            @fact_throws ErrorException CompEcon.check_basis_structure(2, X,
+                                                                       order2)
         end
 
 
