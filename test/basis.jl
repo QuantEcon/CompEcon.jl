@@ -114,10 +114,10 @@ facts("Test Basis") do
     end
 
     # call show (which calls writemime) so I can get 100% coverage :)
-    show(STDOUT, ChebParams(10, -1, 1))
-    show(STDOUT, SplineParams(10, -1, 1))
-    show(STDOUT, LinParams(10, -1, 1))
-    show(STDOUT, b_both)
+    println(ChebParams(10, -1, 1))
+    println(SplineParams(10, -1, 1))
+    println(LinParams(10, -1, 1))
+    println(b_both)
 end
 
 end
