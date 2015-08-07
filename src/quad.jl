@@ -565,8 +565,13 @@ function qnwnorm(n::Vector{Int}, mu::Vector, sig2::Matrix=eye(length(n)))
         push!(weights, _1d[2])
     end
 
-    weights = ckron(weights[end:-1:1]...)
-    nodes = gridmake(nodes...)
+    weights = CompEcon.ckron(weights[end:-1:1]...)
+
+    if n_n > 1
+        nodes = gridmake(nodes...)
+    else
+        nodes = nodes[1][:, :]
+    end
 
     new_sig2 = chol(sig2)
 
