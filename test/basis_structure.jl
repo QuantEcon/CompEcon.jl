@@ -120,7 +120,7 @@ facts("Test Basis Structure Representations") do
 
 
     # call show (which calls writemime) so we can get 100% coverage
-    show(STDOUT, Φ_tensor)
+    println(Φ_tensor)
 
 end  # facts
 
