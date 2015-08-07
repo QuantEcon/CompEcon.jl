@@ -39,7 +39,7 @@ function funfitxy{T}(basis::Basis, x::Vector{Vector{T}}, y)
     mm != m && error("x and y are incompatible")
 
     # get Tensor form -- most efficient
-    bs = BasisStructure(basis, x, 0)
+    bs = BasisStructure(basis, Tensor(), x, 0)
 
     # get coefs and return
     c = get_coefs(basis, bs, y)
@@ -70,42 +70,52 @@ end
 
 # funeval wants to evaluate at a matrix. As a stop-gap until I find some
 # time, this method makes a scalar x into a 1x1 matrix
-funeval(c, basis::Basis, x::Real, order=0) =
+funeval(c, basis::Basis{1}, x::Real, order=0) =
     funeval(c, basis, fill(x, 1, 1), order)
 
 # when x is a vector and we have a univariate interpoland, we don't want to
 # return just the first element (see next method)
-funeval(c, basis::Basis{1}, x::Vector, order=0) =
+funeval{T<:Number}(c, basis::Basis{1}, x::Vector{T}, order=0) =
     funeval(c, basis, x[:, :], order)
 
 # Here we want only the first element because we have a N>1 dimensional basis
 # and we passed only a 1 dimensional array of points at which to evaluate,
 # meaning we must have passed a single point.
-funeval{N}(c, basis::Basis{N}, x::Vector, order=0) =
+funeval{N,T<:Number}(c, basis::Basis{N}, x::Vector{T}, order=0) =
     funeval(c, basis, reshape(x, 1, N), order)[1]
 
-# helper method to construct BasisStructure, then pass to one of the three
-# below
-function funeval(c, basis::Basis, x::Matrix, order=0)
-    d = ndims(basis)
-    if size(x, 2) != d
-        error("x must have d=$(d) columns")  # 62
-    end
+function funeval{N,T}(c, basis::Basis{N}, x::Vector{Vector{T}}, order=0)
+    # check inputs
+    size(x, 1) == N ||  error("x must have d=$N elements")
+    order =_check_order(N, order)
 
-    if size(order, 2) == 1
-        order = order * fill(1, 1, d)  # 65
-    end
-    # TODO: defaulting to Direct() should really happen via a constructor.
-    #       need to do some design work and clean that up
-    bs = BasisStructure(basis, Direct(), x, order)  # 67
+    # construct tensor form BasisStructure
+    bs = BasisStructure(basis, Tensor(), x, order)  # 67
 
+    # pass of to specialized method below
     funeval(c, bs, order)
 end
 
+# helper method to construct BasisStructure{Direct}, then pass to the method
+# below below
+function funeval{N}(c, basis::Basis{N}, x::Matrix, order=0)
+    # check that inputs are conformable
+    size(x, 2) == N || error("x must have d=$(N) columns")  # 62
+    order =_check_order(N, order)
+
+    # construct BasisStructure in Direct form
+    bs = BasisStructure(basis, Direct(), x, order)  # 67
+
+    # pass of to specialized method below
+    funeval(c, bs, order)
+end
+
+# funeval1
 function funeval(c, bs::BasisStructure{Tensor},
-                 order::Matrix{Int}=fill(0, 1, size(bs.order, 2)))  # funeval1
+                 order::Matrix{Int}=fill(0, 1, size(bs.order, 2)))
     kk, d = size(order)  # 95
-    # 98 reverse the order of evaluation: bs(d)xB(d-1)x...xB(1)
+
+    # 98 reverse the order of evaluation: B(d) × B(d-1) × ⋯ × B(1)
     order = flipdim(order+1*(size(bs.vals, 1) * (0:d-1)' - bs.order+1), 2)
 
     # 99

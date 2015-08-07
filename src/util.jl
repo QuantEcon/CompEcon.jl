@@ -10,12 +10,38 @@ function fix!{T <: Real}(x::Array{T}, out::Array{Int})
     return out
 end
 
-fix{T <: Real}(x::Array{T}) = fix!(x, similar(x, Int))
-fix{T <: Real}(x::T) = int(x >= 0 ? floor(x) : ceil(x))
+fix{T<:Real}(x::Array{T}) = fix!(x, similar(x, Int))
+fix{T<:Real}(x::T) = x >= 0 ? floor(Int, x) : ceil(Int, x)
+
+# ckronx.m -- TODO
+function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
+                                    ind::Matrix{Int}=reshape(1:length(b),
+                                                             1, length(b)))
+    d = length(ind)  # 26
+    n = Array(Int, d)  # 27
+    for i=1:d  # 28
+        n[i] = size(b[ind[i]], 2)
+    end
+
+    if prod(n) != size(c, 1)  # 29-31
+        m = "b and c are not conformable (b suggests size(c, 1) should be $(prod(n)))"
+        error(m)
+    end
+
+    z = c'  # 32
+    mm = 1  # 33
+    for i=1:d
+        m = Int(length(z) / n[i])  # 35
+        z = reshape(z, m, n[i])  # 36
+        z = b[ind[i]] * z'  # 37
+        mm = mm * size(z, 1)  # 38
+    end
+    z = reshape(z, mm, size(c, 2))  # 40
+end
 
 # ckron.m -- DONE
-ckron(A::Array, B::Array) = kron(A, B)
-ckron(arrays::Array...) = reduce(kron, arrays)
+ckron(A::AbstractArray, B::AbstractArray) = kron(A, B)
+ckron(arrays::AbstractArray...) = reduce(kron, arrays)
 
 gridmake(v::AbstractVector) = v
 
@@ -299,4 +325,23 @@ function lookup(table::Vector, x::Vector, p::Int=0)
 
     out
 
+end
+
+
+# utility to expand the order input if needed
+# used in basis_structure.jl and interp.jl
+_check_order(N::Int, order::Int) = fill(order, 1, N)
+_check_order(N::Int, order::Vector) = reshape(order, 1, N)
+
+function _check_order(N::Int, order::Matrix)
+    if size(order, 2) == N
+        return order
+    end
+
+    if size(order, 1) == N
+        m = size(order, 2)
+        return reshape(order, m, N)
+    end
+
+    error("invalid order argument. Should have $N columns")
 end

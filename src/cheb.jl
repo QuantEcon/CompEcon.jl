@@ -115,8 +115,10 @@ function evalbasex(p::ChebParams, x)
     bas[:, 1] = 1.0
     bas[:, 2] = z
     z = 2 * z
-    for i=3:n
-        bas[:, i] = z .* bas[:, i-1] - bas[:, i-2]
+    @inbounds for j=3:n
+        for i=1:m
+            bas[i, j] = z[i] .* bas[i, j-1] - bas[i, j-2]
+        end
     end
     bas
 end
