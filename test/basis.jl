@@ -112,6 +112,12 @@ facts("Test Basis") do
         # verify that the nodes from combined 2d basis is correct size
         @fact size(n_both) --> (length(n1)*length(n2), 2)
     end
+
+    # call show (which calls writemime) so I can get 100% coverage :)
+    show(STDOUT, ChebParams(10, -1, 1))
+    show(STDOUT, SplineParams(10, -1, 1))
+    show(STDOUT, LinParams(10, -1, 1))
+    show(STDOUT, b_both)
 end
 
 end

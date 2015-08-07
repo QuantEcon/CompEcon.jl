@@ -10,7 +10,7 @@ facts("Test Optimization") do
 
 	# test 1D method
 
-	f(x) = -(x.^2 + x) # the function has a global maximum at x = -.5
+	f(x) = -(x^2 + x) # the function has a global maximum at x = -.5
 	a = -3
 	b = 5
 
@@ -28,8 +28,8 @@ facts("Test Optimization") do
 
 	context("Golden Method, multiD") do
         xstar,fstar = golden_method(g,a,b)
-        @fact [-.5,0] --> roughly(xstar, atol = 1e-15) 
-        @fact [.25,0] --> roughly(fstar, atol = 1e-15) 
+        @fact [-.5,0] --> roughly(xstar, atol = 1e-15)
+        @fact [.25,0] --> roughly(fstar, atol = 1e-15)
     end
 
 end
