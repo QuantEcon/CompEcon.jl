@@ -11,7 +11,7 @@ immutable Expanded <: ABSR end
 
 type BasisStructure{BST<:ABSR, TM<:AbstractMatrix}
     order::Matrix{Int}
-    vals::Array{TM}
+    vals::Matrix{TM}
 end
 
 Base.writemime{BST}(io::IO, ::MIME"text/plain", b::BasisStructure{BST}) =
@@ -160,7 +160,7 @@ function Base.convert{TM}(::Type{Expanded}, bs::BasisStructure{Direct,TM},
                       order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bs, order)
 
-    vals = Array(TM, numbas)
+    vals = Array(TM, numbas, 1)
 
     for i=1:numbas
         vals[i] = bs.vals[order[i, d] - bs.order[d]+1, d]  # 63
@@ -177,7 +177,7 @@ function Base.convert{TM}(::Type{Expanded}, bs::BasisStructure{Tensor,TM},
                       order=fill(0, 1, size(bs.order, 2)))
     d, numbas, d1 = check_convert(bs, order)
 
-    vals = Array(TM, numbas)
+    vals = Array(TM, numbas, 1)
 
     for i=1:numbas  # 54
         vals[i] = bs.vals[order[i, d] - bs.order[d]+1, d]  # 55
@@ -280,7 +280,7 @@ function BasisStructure(basis::Basis, ::Expanded,
 end
 
 function BasisStructure{N,BF,T}(basis::Basis{N,BF}, ::Tensor,
-                           x::Vector{Vector{T}}=nodes(basis)[2], order=0)
+                                x::Vector{Vector{T}}=nodes(basis)[2], order=0)
     m, order, minorder, numbases, x = check_basis_structure(N, x, order)
     out_order = minorder
     out_format = Tensor()
