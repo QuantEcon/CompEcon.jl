@@ -27,4 +27,14 @@ facts("test CompEcon.lookup") do
 
 end
 
+
+facts("test CompEcon.gridmake") do
+    # TODO: these tests are very incomplete. They just test that gridmake
+    #       preserves input type
+
+    for T in [Float16, Float32, Float64, Int128, Int16, Int32, Int64, Int8]
+        @fact eltype(CompEcon.gridmake(rand(T, 2), rand(T, 2))) --> T
+    end
+end
+
 end  # module

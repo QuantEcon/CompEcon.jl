@@ -1,5 +1,5 @@
 # Tests conversion among basis-structure representations
-module TestBasis_Structure
+module TestBasisStructure
 
 using CompEcon
 using Base.Test
@@ -11,23 +11,115 @@ facts("Test Basis Structure Representations") do
                ChebParams(7, 1e-4, 10.0))
 
     # construct evaluation points
-    x1 = linspace(a[1],b[1],15)
-    x2 = linspace(a[2],b[2],10)
-    X = gridmake(x1, x2)
+    X, x12 = nodes(mb)
 
-    # construct tensor basis-structure representation
-    PHI_tensor = BasisStructure(mb, Tensor(), X)
+    # construct expanded, direct, and tensor basis-structure representation
+    Φ_expanded = CompEcon.BasisStructure(mb, CompEcon.Expanded(), X)
+    Φ_direct = CompEcon.BasisStructure(mb, CompEcon.Direct(), X)
+    Φ_tensor = CompEcon.BasisStructure(mb, CompEcon.Tensor(), x12)
 
-    # construct direct basis-structure representation
-    PHI_direct = BasisStructure(mb, Direct(), X)
+    context("test standard Base methods") do
+        # test == and ndims
+        for Φ in (Φ_expanded, Φ_direct, Φ_tensor)
+            @fact Φ == Φ --> true
+            @fact ndims(Φ) --> 2
+        end
 
-    # construct direct basis-structure representation
-    PHI_expanded = BasisStructure(mb, Expanded(), X)
+        for Φ in (Φ_direct, Φ_tensor)
+            @fact Φ_expanded == Φ --> false
+        end
 
-
-    convert(bst::Type{Expanded}, bs::BasisStructure{Direct})
-
-    context("constructors") do
     end
 
-end
+    context("test convert methods") do
+        @fact Φ_direct == convert(Direct, Φ_tensor) --> true
+        @fact Φ_expanded == convert(Expanded, Φ_direct) --> true
+        @fact Φ_expanded == convert(Expanded, Φ_tensor) --> true
+        @fact ==(Φ_expanded,
+                 convert(Expanded, convert(Direct, Φ_tensor))) --> true
+
+
+        # test the no-op covert method
+        @fact convert(Expanded, Φ_expanded) --> Φ_expanded
+        @fact convert(Direct, Φ_direct) --> Φ_direct
+        @fact convert(Tensor, Φ_tensor) --> Φ_tensor
+
+        # test that we can't do expanded -> (direct|tensor) or direct -> tensor
+        @fact_throws MethodError convert(Direct, Φ_expanded)
+        @fact_throws MethodError convert(Tensor, Φ_expanded)
+        @fact_throws MethodError convert(Tensor, Φ_direct)
+    end
+
+    context("test internal tools") do
+        ## test _vals_type
+        for (TF, TM) in [(Spline, Base.SparseMatrix.SparseMatrixCSC{Float64,Int}),
+                         (Lin, Base.SparseMatrix.SparseMatrixCSC{Float64,Int}),
+                         (Cheb, Matrix{Float64})]
+            @fact CompEcon._vals_type(TF) --> TM
+            @fact CompEcon._vals_type(TF()) --> TM
+        end
+
+        @fact CompEcon._vals_type(CompEcon.BasisFamily) --> AbstractMatrix{Float64}
+
+        ## test _checkx
+        # create test data
+        xm = rand(1, 2)
+        xv = rand(2)
+        xvv = [rand(2) for i=1:2]
+
+        @fact CompEcon._checkx(2, xm) --> xm
+        @fact CompEcon._checkx(2, xv) --> reshape(xv, 1, 2)
+        @fact CompEcon._checkx(2, xvv) --> xvv
+        @fact CompEcon._checkx(1, xv) --> xv
+
+        @fact_throws ErrorException CompEcon._checkx(2, rand(1, 3))
+        @fact_throws ErrorException CompEcon._checkx(2, rand(3))
+        @fact_throws ErrorException CompEcon._checkx(2, [rand(2) for i=1:3])
+
+        ## test check_convert
+        for Φ in (Φ_expanded, Φ_direct, Φ_tensor)
+            @fact CompEcon.check_convert(Φ, zeros(1, 2)) --> (2, 1, 2)
+            @fact_throws ErrorException CompEcon.check_convert(Φ, zeros(1, 3))
+            @fact_throws ErrorException CompEcon.check_convert(Φ, fill(-1, 1, 3))
+        end
+
+        ## test check_basis_structure
+        context("test check_basis_structure") do
+            order1 = zeros(Int, 1, 2)
+            out1 = CompEcon.check_basis_structure(2, xm, order1)
+            @fact out1 --> (1, order1, order1, [1 1], xm)
+
+            # test the method for order::Int
+            @fact CompEcon.check_basis_structure(2, xm, 0) --> out1
+
+            # test the reshape(order, 1, N) branch (isa(order, Vector))
+            @fact CompEcon.check_basis_structure(2, xm, [0, 0]) --> out1
+
+            # check N=1 --> order = fill(order, 1, 1) branch
+            out_1d = CompEcon.check_basis_structure(1, xv, 0)
+            order_1d_out = fill(0, 1, 1)
+            @fact out_1d --> (1, order_1d_out, order_1d_out, fill(1, 1, 1), xv)
+
+            # check m > 1 branch
+            order_m2 = [0 0; 1 1; 0 -1]
+            out_m2 = CompEcon.check_basis_structure(2, xm, order_m2)
+            @fact out_m2 --> (3, order_m2, [0 -1], [2 3], xm)
+
+
+            order2 = zeros(Int, 1, 5)  # should throw error
+            @fact_throws DimensionMismatch CompEcon.check_basis_structure(2,
+                                                                          X,
+                                                                          order2)
+        end
+
+
+    end
+
+    context("constructors") do
+        nothing
+    end
+
+end  # facts
+
+
+end  # module

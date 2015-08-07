@@ -51,3 +51,11 @@ function revert(b::Basis)
     B[:params] = Any[old_params(p) for p in b.params]
     B
 end
+
+
+# add method to funbasex that creates a BasisStructure
+funbasex(basis::Basis, x=nodes(basis)[1], order=0, bformat::ABSR=Direct()) =
+    BasisStructure(basis, x, order, bformat)
+
+funbase(basis::Basis, x=nodes(basis)[1], order=fill(0, 1, ndims(basis))) =
+    funbasex(basis, x, order, Expanded()).vals[1]

@@ -7,9 +7,6 @@ TODO: still need to write fund, minterp
 TODO: also need splidop, lindop
 TODO: funeval fails for scalar input and does weird thing for 1-element
       vector input
-TODO: Decide if I should move core algorithms into julian api files or leave
-      them in src/original. Right now src/original/core repeats a lot of code
-      that is better written in src/
 
 TODO: remove the x return value for evalbase
 TODO: Simplify API by only allowing `order` in evalbase to be Int. Then we get
@@ -46,6 +43,11 @@ evalbase(b::Basis{1}, order::Vector{Int}) => .... can't remember
 evalbase(b::Basis{N}, order::Matrix{Int}) => Vector{... can't remembers}
 ```
 
+TODO: potentially add another abstract type
+      `abstract AbstractSpline <: BasisFamily` and then make
+      `Lin <: AbstractSpline` and `Spline <: AbstractSpline` So I can preserve
+      the type info for the Base.SparseMatrix.SparseMatrixCSC{Float64,Int64}
+      TM type parameter on the `BasisStructure` for a hybrid Spline/Lin Basis
 
 =#
 
