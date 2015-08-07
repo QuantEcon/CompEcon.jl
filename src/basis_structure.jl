@@ -73,21 +73,18 @@ end
 end
 
 # common checks for all convert methods
-function check_convert(bs::BasisStructure, order)
+function check_convert(bs::BasisStructure, order::Matrix)
     d = ndims(bs)
     numbas, d1 = size(order)
 
     d1 != d && error("ORDER incompatible with basis functions")  # 35-37
 
     # 39-41
-    if any(minimum(order) .< bs.order)
+    if any(minimum(order, 1) .< bs.order)
         error("Order of derivative operators exceeds basis")
     end
     return d, numbas, d1
 end
-
-check_basis_structure(N, x, order::Int) =
-    check_basis_structure(N, x, fill(order, 1, N))
 
 """
 Do common transformations to all constructor of `BasisStructure`
@@ -113,17 +110,11 @@ distinct derivative orders along each dimension
 the basis
 
 """
-function check_basis_structure(N::Int, x, order::Array{Int})
-    if N > 1 && size(order, 2) == 1  # 62
-        order = reshape(order, 1, N)
-    end  # 64
-
-    if N == 1 && isa(order, Int)
-        order = fill(order, 1, 1)
-    end
+function check_basis_structure(N::Int, x, order)
+    order = _check_order(N, order)
 
     # initialize basis structure (66-74)
-    m = size(order, 1)  # by this time order should be a matrix
+    m = size(order, 1)  # by this time order is a matrix
     if m > 1
         minorder = minimum(order, 1)
         numbases = (maximum(order, 1) - minorder) + 1
