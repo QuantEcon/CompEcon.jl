@@ -1,6 +1,6 @@
 # CompEcon
 
-[![Build Status](https://travis-ci.org/spencerlyon2/CompEcon.jl.svg?branch=master)](https://travis-ci.org/spencerlyon2/CompEcon.jl)
+[![Build Status](https://travis-ci.org/spencerlyon2/CompEcon.jl.svg?branch=master)](https://travis-ci.org/spencerlyon2/CompEcon.jl) [![codecov.io](http://codecov.io/github/spencerlyon2/CompEcon.jl/coverage.svg?branch=master)](http://codecov.io/github/spencerlyon2/CompEcon.jl?branch=master) [![Coverage Status](https://coveralls.io/repos/spencerlyon2/CompEcon.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/spencerlyon2/CompEcon.jl?branch=master)
 
 
 
