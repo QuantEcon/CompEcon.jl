@@ -13,7 +13,7 @@ end
 fix{T<:Real}(x::Array{T}) = fix!(x, similar(x, Int))
 fix{T<:Real}(x::T) = x >= 0 ? floor(Int, x) : ceil(Int, x)
 
-# ckronx.m -- TODO
+# ckronx.m -- DONE
 function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
                                     ind::Matrix{Int}=reshape(1:length(b),
                                                              1, length(b)))
