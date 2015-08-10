@@ -31,7 +31,7 @@ function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
     z = c'  # 32
     mm = 1  # 33
     for i=1:d
-        m = Int(length(z) / n[i])  # 35
+        @compat m = Int(length(z) / n[i])  # 35
         z = reshape(z, m, n[i])  # 36
         z = b[ind[i]] * z'  # 37
         mm = mm * size(z, 1)  # 38
