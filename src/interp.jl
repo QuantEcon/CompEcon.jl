@@ -2,10 +2,23 @@
 # Fitting routines #
 # ---------------- #
 
-function get_coefs(basis::Basis, bs::BasisStructure{Tensor}, y)
+# Tensor representation, single function method; calls function that computes coefficients below below
+function get_coefs{T}(basis::Basis, bs::BasisStructure{Tensor}, y::Vector{T})
     if any(bs.order[1, :] .!= 0)
         error("invalid basis structure - first elements must be order 0")
     end
+    _get_coefs_deep(basis,bs,y)[:,1]
+end
+
+# Tensor representation, multiple function method; calls function that computes coefficients below
+function get_coefs{T}(basis::Basis, bs::BasisStructure{Tensor}, y::Matrix{T})
+    if any(bs.order[1, :] .!= 0)
+        error("invalid basis structure - first elements must be order 0")
+    end
+    _get_coefs_deep(basis,bs,y)
+end
+
+function _get_coefs_deep(basis::Basis,bs::BasisStructure{Tensor},y)
     to_kron = bs.vals[1, :]  # 68
     ckronxi(to_kron, y, ndims(basis):-1:1)  # 66
 end
