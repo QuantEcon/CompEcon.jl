@@ -18,8 +18,12 @@ facts("Test Basis Structure Representations") do
     Φ_direct = CompEcon.BasisStructure(mb, CompEcon.Direct(), X)
     Φ_tensor = CompEcon.BasisStructure(mb, CompEcon.Tensor(), x12)
 
+    # construct expanded, direct, and tensor basis-structure representation with 1D basis
+    Φ_expanded_1d = CompEcon.BasisStructure(mb[1], CompEcon.Expanded(), X[:,1])
+    Φ_direct_1d = CompEcon.BasisStructure(mb[1], CompEcon.Direct(), X[:,1])
+
     context("test standard Base methods") do
-        # test == and ndims
+        # test == and ndims, multiD
         for Φ in (Φ_expanded, Φ_direct, Φ_tensor)
             @fact Φ == Φ --> true
             @fact ndims(Φ) --> 2
@@ -28,6 +32,14 @@ facts("Test Basis Structure Representations") do
         for Φ in (Φ_direct, Φ_tensor)
             @fact Φ_expanded == Φ --> false
         end
+
+        # test == and ndims, 1D
+        for Φ in (Φ_expanded_1d, Φ_direct_1d)
+            @fact Φ == Φ --> true
+            @fact ndims(Φ) --> 1
+        end
+
+        @fact Φ_expanded_1d == Φ_direct_1d --> true
 
     end
 
