@@ -219,6 +219,9 @@ end
 # quick function to take order+vals and return expanded form for 1d problems
 function to_expanded(out_order::Matrix{Int}, vals::Array)
     vals = vals[collect(out_order + (1 - minimum(out_order)))]
+    if length(vals) == 1
+        vals = reshape(vals, 1, 1)
+    end
     BasisStructure{Expanded,eltype(vals)}(out_order, vals)
 end
 
