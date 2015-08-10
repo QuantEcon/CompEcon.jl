@@ -198,7 +198,7 @@ function funeval(c, bs::BasisStructure{Expanded},
             f[:, :, i] = bs.vals[ii]*c  #148
          end
      else
-        nx = size(bs.vals, 1)  # 151
+        nx = size(bs.vals[1], 1)  # 151
         f = zeros(nx, size(c, 2), kk)  # 152
         for i=1:kk
             f[:, :, i] = bs.vals[1]*c  # 154
