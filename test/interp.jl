@@ -24,13 +24,10 @@ facts("check interp.jl") do
     # benchmark coefficients
     c_direct, bs_direct = CompEcon.funfitxy(basis, X, y)
 
-#=
     context("test funfitxy for tensor and direct agree on coefs") do
         c_tensor, bs_tensor = CompEcon.funfitxy(basis, x12, y)
-
         @fact c_tensor --> roughly(c_direct; atol=1e-13)
     end
-=#
 
     context("test funfitf") do
         c = CompEcon.funfitf(basis,f)
@@ -42,11 +39,11 @@ facts("check interp.jl") do
         #single point
         sp = CompEcon.funeval(c_direct,basis,X[5,:])[1]
         @fact sp --> roughly(y[5]; atol=1e-15)
-#=
+
         #multiple points using tensor directly
         mp = CompEcon.funeval(c_direct,basis,x12)
         @fact mp --> roughly(y; atol=1e-15)
-=#
+
         #multiple points using direct (which in turn uses tensor)
         mp = CompEcon.funeval(c_direct,basis,X)
         @fact mp --> roughly(y; atol=1e-15)
@@ -55,12 +52,12 @@ facts("check interp.jl") do
         Phidirect = CompEcon.BasisStructure(basis,CompEcon.Direct(),X)
         mpd = CompEcon.funeval(c_direct,Phidirect)
         @fact mpd --> roughly(y; atol=1e-15)
-#=
+
         #multiple points giving basis in expanded form
-        Phiexp = CompEcon.Base.convert(CompEcon.Expanded(),Phidirect)
+        Phiexp = Base.convert(CompEcon.Expanded,Phidirect)
         mpe = CompEcon.funeval(c_direct,Phiexp)
         @fact mpe --> roughly(y; atol=1e-15)
-=#
+
     end
 
     context("test interpoland methods") do
