@@ -39,7 +39,6 @@ for i in 1:3
 
         context("test funfitf") do
             c = CompEcon.funfitf(basis,f)
-
             @fact c --> roughly(c_direct; atol=1e-15)
         end
 
@@ -52,17 +51,16 @@ for i in 1:3
             mp = CompEcon.funeval(c_direct,basis,x12)
             @fact mp --> roughly(y; atol=1e-15)
 
-            #multiple points using direct (which in turn uses tensor)
+            #multiple points using direct
             mp = CompEcon.funeval(c_direct,basis,X)
             @fact mp --> roughly(y; atol=1e-15)
 
             #multiple points giving basis in direct form
-            Phidirect = CompEcon.BasisStructure(basis,CompEcon.Direct(),X)
-            mpd = CompEcon.funeval(c_direct,Phidirect)
+            mpd = CompEcon.funeval(c_direct,bs_direct)
             @fact mpd --> roughly(y; atol=1e-15)
 
             #multiple points giving basis in expanded form
-            Phiexp = Base.convert(CompEcon.Expanded,Phidirect)
+            Phiexp = Base.convert(CompEcon.Expanded,bs_direct)
             mpe = CompEcon.funeval(c_direct,Phiexp)
             @fact mpe --> roughly(y; atol=1e-15)
 
@@ -70,8 +68,7 @@ for i in 1:3
 
         context("test interpoland methods") do
             # (Basis,BasisStructure,..)
-            Phidirect = CompEcon.BasisStructure(basis,CompEcon.Direct(),X)
-            intp1 = CompEcon.Interpoland(basis,Phidirect,y)
+            intp1 = CompEcon.Interpoland(basis,bs_direct,y)
             @fact CompEcon.evaluate(intp1,X) --> roughly(y; atol=1e-15)
             # (Basis,Array,..)
             intp2 = CompEcon.Interpoland(basis,X,y)
