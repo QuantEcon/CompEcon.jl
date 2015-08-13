@@ -172,37 +172,10 @@ function funeval(c, bs::BasisStructure{Expanded},
         kk = size(order, 1)  # 133
     end
 
-    if isa(bs.vals, Vector{Vector{eltype(bs.vals[1])}})
-        nx = size(bs.vals[1], 1)
-        f = zeros(nx, size(c, 2), kk)
-        for i=1:kk
-            # 140 determine which element of bs.vals is the desired basis
-            ii = Int[]
-            for row=1:size(bs.order, 1)
-                r = bs.order[row, :]
-                if r == order[i, :]
-                    push!(ii, row)
-                end
-            end
-
-            # 141-143
-            isempty(ii)  && error("Requested basis matrix is not available")
-
-            length(ii) > 1 &&  warn("redundant request in funeval3")  # 145
-
-            # NOTE: must do even when length[i] == 1 b/c want element of cell
-            #       and indexing cell with vector in julia gives cell instead
-            #       of the element
-            ii = ii[1]  # 146
-
-            f[:, :, i] = bs.vals[ii]*c  #148
-         end
-     else
-        nx = size(bs.vals[1], 1)  # 151
-        f = zeros(nx, size(c, 2), kk)  # 152
-        for i=1:kk
-            f[:, :, i] = bs.vals[1]*c  # 154
-        end
+    nx = size(bs.vals[1], 1)  # 151
+    f = zeros(nx, size(c, 2), kk)  # 152
+    for i=1:kk
+        f[:, :, i] = bs.vals[1]*c  # 154
     end
 
     return squeeze_trail(f)
