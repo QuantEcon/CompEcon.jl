@@ -8,15 +8,16 @@ using FactCheck
 
 facts("Test Basis Structure Representations") do
     mb = Basis(SplineParams(linspace(-3, 3, 9), 0, 1),
-               ChebParams(7, 1e-4, 10.0))
+               ChebParams(7, 1e-4, 10.0),
+               LinParams(linspace(-4, 2, 11), 0))
 
     # construct evaluation points
-    X, x12 = nodes(mb)
+    X, x123 = nodes(mb)
 
     # construct expanded, direct, and tensor basis-structure representation
     Φ_expanded = CompEcon.BasisStructure(mb, CompEcon.Expanded(), X)
     Φ_direct = CompEcon.BasisStructure(mb, CompEcon.Direct(), X)
-    Φ_tensor = CompEcon.BasisStructure(mb, CompEcon.Tensor(), x12)
+    Φ_tensor = CompEcon.BasisStructure(mb, CompEcon.Tensor(), x123)
 
     # construct expanded, direct, and tensor basis-structure representation with 1D basis
     Φ_expanded_1d = CompEcon.BasisStructure(mb[1], CompEcon.Expanded(), X[:,1])
@@ -26,7 +27,7 @@ facts("Test Basis Structure Representations") do
         # test == and ndims, multiD
         for Φ in (Φ_expanded, Φ_direct, Φ_tensor)
             @fact Φ == Φ --> true
-            @fact ndims(Φ) --> 2
+            @fact ndims(Φ) --> 3
         end
 
         for Φ in (Φ_direct, Φ_tensor)
@@ -90,8 +91,8 @@ facts("Test Basis Structure Representations") do
 
         ## test check_convert
         for Φ in (Φ_expanded, Φ_direct, Φ_tensor)
-            @fact CompEcon.check_convert(Φ, zeros(1, 2)) --> (2, 1, 2)
-            @fact_throws ErrorException CompEcon.check_convert(Φ, zeros(1, 3))
+            @fact CompEcon.check_convert(Φ, zeros(1, 3)) --> (3, 1, 3)
+            @fact_throws ErrorException CompEcon.check_convert(Φ, zeros(1, 2))
             @fact_throws ErrorException CompEcon.check_convert(Φ, fill(-1, 1, 3))
         end
 
