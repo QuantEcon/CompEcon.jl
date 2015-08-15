@@ -33,21 +33,23 @@ end
 mB = manualeval(nod,params.a[1],params.b[1],params.n[1])
 
 #=
-function manualderiv1(x,a,b)
+function manualderiv1(a,b,n)
 
+    x = CompEcon.nodes(CompEcon.ChebParams(n-1,a,b))
     z = (2*(x-a)/(b-a)-1)''
 
-    D = [ones(length(z),1) 4*z 12*z.^2-3 32*z.^3-16*z 80*z.^4-60*z.^2+5 192*z.^5-192*z.^3+36*z]
+    D = [zeros(length(z),1) ones(length(z),1) 4*z 12*z.^2-3 32*z.^3-16*z 80*z.^4-60*z.^2+5 192*z.^5-192*z.^3+36*z]
 
     return D
 
 end
 
-function manualint1(x,a,b)
+function manualint1(a,b,n)
 
+    x = CompEcon.nodes(CompEcon.ChebParams(n+1,a,b))
     z = (2*(x-a)/(b-a)-1)''
 
-    I = [ones(length(z),1) z .5*z.^2 2/3*z.^3-z z.^4-3/2*z.^2 8/5*z.^5-8/3*z.^3+z 16/6*z.^6-5*z.^4+2.5*z.^2 32/7*z.^7-48/5*z.^5+6*z.^3-z]
+    I = [z .5*z.^2 2/3*z.^3-z z.^4-3/2*z.^2 8/5*z.^5-8/3*z.^3+z 16/6*z.^6-5*z.^4+2.5*z.^2 32/7*z.^7-48/5*z.^5+6*z.^3-z]
 
     return I
 
