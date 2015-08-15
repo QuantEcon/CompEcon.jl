@@ -78,7 +78,7 @@ function evalbase(p::ChebParams, x=nodes(p, 1), order=0, nodetype=1)
         temp = ((n-0.5):-1:0.5)''  # 41
         bas = cos((pi/n)*temp.*(0:(n-1-minorder))')  # 42
     else
-        bas = chebbasex(n-minorder, a, b, x)  # 44
+        bas = evalbasex(ChebParams(n-minorder, a, b), x)  # 44
     end
 
     if length(order) == 1
