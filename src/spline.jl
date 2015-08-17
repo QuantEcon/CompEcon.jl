@@ -59,19 +59,28 @@ end
 function derivative_op(p::SplineParams, order=1)
     breaks, evennum, k = p.breaks, p.evennum, p.k
 
-    any(order .>= k) && error("Order of differentiation must be less than k")
+    any(order .> k) && error("Order of differentiation can't be greater than k")
 
     # 38-40
     n = length(breaks) + k - 1
     kk = max(k - 1, k - order - 1)
     augbreaks = vcat(fill(breaks[1], kk), breaks, fill(breaks[end], kk))
 
-    D = cell(abs(order), 1)
+    D = Array(SparseMatrixCSC{Float64,Int64}, abs(order), 1)
+
     if order > 0  # derivative
         temp = k ./ (augbreaks[k+1:n+k-1] - augbreaks[1:n-1])
-        D[1] = spdiags([-temp temp], 0:1, n-1, n)
-        # TODO: pick up here
+        D[1] = spdiagm((-temp, temp), 0:1, n-1, n)
+
+        for i=2:order
+            temp = (k+1-i) ./ (augbreaks[k+1:n+k-i] - augbreaks[i:n-1])
+            D[i] = spdiagm((-temp, temp), 0:1, n-i, n+1-i)*D[i-1]
+        end
+    else
+        error("not implemented")
     end
+
+    D, n-order, breaks[1], breaks[end], Any[breaks, evennum, k-order]
 end
 
 """
@@ -119,12 +128,12 @@ function evalbase(p::SplineParams, x=nodes(p), order=0)
 
     # 76
     if maximum(order) > 0
-        D = splidop(breaks, evennum, k, maximum(order))
+        D = splidop(breaks, evennum, k, maximum(order))[1]
     end
 
     # 77
     if minorder < 0
-        I = splidop(breaks, evennum, k, minorder)
+        I = splidop(breaks, evennum, k, minorder)[1]
     end
 
     for j=1:k-minorder  # 78
