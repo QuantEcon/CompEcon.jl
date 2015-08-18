@@ -73,6 +73,9 @@ import Base: ==
 
 export golden_method
 
+# zeros
+export bisect, brenth, brent, ridder, expand_bracket, divide_bracket
+
 # types
 export BasisFamily, Cheb, Lin, Spline, Basis,
        BasisParams, ChebParams, LinParams, SplineParams,
@@ -81,7 +84,8 @@ export BasisFamily, Cheb, Lin, Spline, Basis,
 
 # functions
 export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
-       derivative_op, funbasex, row_kron, evaluate, fit!, update_coefs!
+       derivative_op, funbasex, row_kron, evaluate, fit!, update_coefs!,
+       complete_polynomial, complete_polynomial!
 
 
 # old API only
@@ -92,12 +96,13 @@ export fundef, fundefn, funnode, funbase, funbasex, funeval, funbconv,
 
 # quad
 export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
-       qnwunif, qnwlogn,
+       qnwunif, qnwlogn, qnwgh, qnwmonomial,
        quadrect,
        gridmake,
        do_quad
 
 include("util.jl")
+include("zeros.jl")
 include("optimization.jl")
 include("original/core.jl")
 include("basis.jl")
@@ -114,6 +119,7 @@ include("original/lin.jl")
 include("cheb.jl")
 include("spline.jl")
 include("lin.jl")
+include("complete.jl")
 
 # include quad
 include("quad.jl")
