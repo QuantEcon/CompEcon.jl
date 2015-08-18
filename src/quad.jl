@@ -852,3 +852,161 @@ function quadrect(f::Function, n, a, b, kind="lege")
 
     return do_quad(f, nodes, weights)
 end
+
+
+"""
+Gauss Hermite quadrature notes and weights in N dimensions. Limited to
+no more than 10 nodes in each dimension.
+
+TODO: I really don't like this. I'll probably swap it out for one of my
+      CompEcon routines once I have verified that my code gives the
+      same answer as the Matlab
+"""
+function qnwgh(n::Int=10, d::Int=1, vcv::Matrix=eye(d))
+    if n == 1
+        ϵ = [0.0]
+        ω = [sqrt(pi)]
+    elseif n == 2
+        ϵ = [0.7071067811865475, -0.7071067811865475]
+        ω = [0.8862269254527580, 0.8862269254527580]
+    elseif n == 3
+        ϵ = [1.224744871391589, 0, -1.224744871391589]
+        ω = [0.2954089751509193, 1.181635900603677, 0.2954089751509193]
+    elseif n == 4
+        ϵ = [1.650680123885785, 0.5246476232752903,  -0.5246476232752903,
+             -1.650680123885785]
+        ω = [0.08131283544724518, 0.8049140900055128, 0.8049140900055128,
+             0.08131283544724518]
+    elseif n == 5
+        ϵ = [2.020182870456086, 0.9585724646138185, 0, -0.9585724646138185,
+             -2.020182870456086]
+        ω = [0.01995324205904591, 0.3936193231522412, 0.9453087204829419,
+             0.3936193231522412, 0.01995324205904591]
+    elseif n == 6
+        ϵ = [2.350604973674492, 1.335849074013697, 0.4360774119276165,
+             -0.4360774119276165, -1.335849074013697, -2.350604973674492]
+        ω = [0.004530009905508846, 0.1570673203228566, 0.7246295952243925,
+             0.7246295952243925, 0.1570673203228566, 0.004530009905508846]
+    elseif n == 7
+        ϵ = [2.651961356835233, 1.673551628767471, 0.8162878828589647, 0,
+             -0.8162878828589647, -1.673551628767471, -2.651961356835233]
+        ω = [0.0009717812450995192, 0.05451558281912703, 0.4256072526101278,
+             0.8102646175568073, 0.4256072526101278, 0.05451558281912703,
+             0.0009717812450995192]
+    elseif n == 8
+        ϵ = [2.930637420257244, 1.981656756695843, 1.157193712446780,
+             0.3811869902073221, -0.3811869902073221, -1.157193712446780,
+             -1.981656756695843,-2.930637420257244]
+        ω = [0.0001996040722113676, 0.01707798300741348, 0.2078023258148919,
+             0.6611470125582413, 0.6611470125582413, 0.2078023258148919,
+             0.01707798300741348, 0.0001996040722113676]
+    elseif n == 9
+        ϵ = [3.190993201781528, 2.266580584531843, 1.468553289216668,
+             0.7235510187528376, 0,-0.7235510187528376, -1.468553289216668,
+             -2.266580584531843, -3.190993201781528]
+        ω = [0.00003960697726326438, 0.004943624275536947,
+             0.08847452739437657, 0.4326515590025558, 0.7202352156060510,
+             0.4326515590025558, 0.08847452739437657, 0.004943624275536947,
+             0.00003960697726326438]
+    elseif n == 10
+        ϵ = [3.436159118837738, 2.532731674232790, 1.756683649299882,
+             1.036610829789514, 0.3429013272237046, -0.3429013272237046,
+             -1.036610829789514, -1.756683649299882, -2.532731674232790,
+             -3.436159118837738]
+        ω = [7.640432855232621e-06, 0.001343645746781233,
+             0.03387439445548106, 0.2401386110823147, 0.6108626337353258,
+             0.6108626337353258, 0.2401386110823147, 0.03387439445548106,
+             0.001343645746781233, 7.640432855232621e-06]
+    else
+        error("n must be between 1 and 10")
+    end
+
+    n_nodes = n^d
+    z1 = zeros(n_nodes, d)
+    ω1 = ones(n_nodes)
+
+    for i=1:d
+        ix = 1
+        for j=1:n^(d-i)
+            for u=1:n
+                n_new = n^(i-1)
+                z1[ix:ix+n_new-1, i] = ϵ[u]
+                ω1[ix:ix+n_new-1] .*= ω[u]
+                ix += n_new
+            end
+        end
+    end
+
+    z = sqrt(2) .* z1
+    weights = ω1 ./ (sqrt(π)^d)
+    nodes = ifelse(length(vcv) == 1, z*chol(vcv)[1], z*chol(vcv))::Matrix{Float64}
+    return nodes, weights
+end
+
+"""
+Computes integration nodes and weights under an N-dimensional monomial
+(non-product) integration rule. If `kind` is equal to `:first` (the
+default), then `2n` nodes will be computed, otherwise an algorithm
+producing `2n^2+1` nodes is used.
+"""
+:qnwmonomial
+
+qnwmonomial(n::Int, vcv::Matrix{Float64}, kind::Symbol=:first) =
+    kind == :first ? _qnwmonomial1(n, vcv) : _qnwmonomial2(n, vcv)
+
+
+function _qnwmonomial1(n::Int, vcv::Matrix{Float64})
+    n_nodes = 2n
+
+    z1 = zeros(n_nodes, n)
+
+    # In each node, random variable i takes value either 1 or -1, and
+    # all other variables take value 0. For example, for N = 2,
+    # z1 = [1 0; -1 0; 0 1; 0 -1]
+    for i=1:n
+        z1[2*(i-1)+1:2*i, i] = [1, -1]
+    end
+
+    sqrt_vcv = chol(vcv)
+    R = sqrt(n)*sqrt_vcv
+    ϵj = z1*R
+    ωj = ones(n_nodes) ./ n_nodes
+    ϵj, ωj
+end
+
+
+function _qnwmonomial2(n::Int, vcv::Matrix{Float64})
+    n_nodes = 2n^2 + 1
+    z0 = zeros(1, n)
+
+    z1 = zeros(2n, n)
+    # In each node, random variable i takes value either 1 or -1, and
+    # all other variables take value 0. For example, for N = 2,
+    # z1 = [1 0; -1 0; 0 1; 0 -1]
+    for i=1:n
+        z1[2*(i-1)+1:2*i, i] = [1, -1]
+    end
+
+    z2 = zeros(2n*(n-1), n)
+    i = 0
+
+    # In each node, a pair of random variables (p,q) takes either values
+    # (1,1) or (1,-1) or (-1,1) or (-1,-1), and all other variables take
+    # value 0. For example, for N = 2, `z2 = [1 1; 1 -1; -1 1; -1 1]`
+    for p=1:n-1
+        for q=p+1:n
+            i += 1
+            z2[4*(i-1)+1:4*i, p] = [1, -1, 1, -1]
+            z2[4*(i-1)+1:4*i, q] = [1, 1, -1, -1]
+        end
+    end
+
+    sqrt_vcv = chol(vcv)
+    R = sqrt(n+2)*sqrt_vcv
+    S = sqrt((n+2)/2)*sqrt_vcv
+    ϵj = [z0; z1*R; z2*S]
+    ωj = vcat(2/(n+2) * ones(size(z0, 1)),
+              (4-n)/(2*(n+2)^2) * ones(size(z1, 1)),
+               1/(n+2)^2 * ones(size(z2, 1)))
+    return ϵj, ωj
+end
