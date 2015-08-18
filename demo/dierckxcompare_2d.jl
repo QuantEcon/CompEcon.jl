@@ -10,33 +10,33 @@ fs = [f1, f2, f3]
 nf = length(fs)
 
 x = collect(linspace(.5, 2, 35))
-x = collect(linspace(.2, 4, 35))
+y = collect(linspace(.2, 4, 35))
 
 function compare_D_CE_levels(f::Function, x::Array{Float64, 1}, y::Array{Float64, 1}, order::Int)
 
     # Create Dierckx Spline (and data)
     n = length(x)
     z = f(x, y')
-    dspl = Spline2D(x, y, z; s=0., k=order)
+    dspl = Spline2D(x, y, z; s=0., kx=order, ky=order)
 
     # Create CompEcon Spline (and data)
     cebasis_x = Basis(SplineParams(x, 0, order))
-    cebasis_y = Basis(SplineParams(x, 0, order))
+    cebasis_y = Basis(SplineParams(y, 0, order))
     cebasis = Basis(cebasis_x, cebasis_y)
     xx = nodes(cebasis)[1]
-    yy = f(xx...)
+    yy = f(xx[:, 1], xx[:, 2])
     c, bs = funfitxy(cebasis, xx, yy)
 
     # Evaluate Splines on finer grid
     xfine = collect(linspace(x[1], x[end], 2*n + 1))
-    zfine = f(xfine)
+    yfine = collect(linspace(y[1], y[end], 2*n + 1))
+    zfine = f(xfine, yfine')
 
-    deval = Dierckx.evaluate(dspl, xfine)
-    derr = abs(yfine - deval)
+    deval = Dierckx.evalgrid(dspl, xfine, yfine)
+    derr = abs(zfine - deval)
 
-    ceeval = CompEcon.funeval(c, cebasis, xfine)
-    ceerr = abs(yfine - ceeval)
-
+    ceeval = CompEcon.funeval(c, cebasis, gridmake(xfine, yfine))
+    ceerr = abs(zfine - reshape(ceeval, 2*n+1, 2*n+1))
 
     return derr, ceerr
 end
