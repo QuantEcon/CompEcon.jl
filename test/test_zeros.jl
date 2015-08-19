@@ -4,9 +4,7 @@ module TestZeros
 
 using FactCheck
 
-include("zeros.jl")
-
-using Zeros
+using CompEcon
 
 #=
 - f1 is a simple quadratic with roots 0 and 1
@@ -43,33 +41,17 @@ facts("Testing univariate root finders") do
     a = 0.5
     b = sqrt(3)
 
-    context("testing bisect") do
-        for f in funcs
-            root = bisect(f, a, b; xtol=0.1e-12)
-            @fact root => roughly(1.0)
+    for root_finder in [bisect, brent, brenth, ridder]
+        nm = string(root_finder)
+
+        context("testing $root_finder") do
+            for f in funcs
+                root = root_finder(f, a, b; xtol=0.1e-12)
+                @fact root --> roughly(1.0)
+            end
         end
     end
 
-    context("testing brent") do
-        for f in funcs
-            root = brent(f, a, b; xtol=0.1e-12)
-            @fact root => roughly(1.0)
-        end
-    end
-
-    context("testing brenth") do
-        for f in funcs
-            root = brenth(f, a, b; xtol=0.1e-12)
-            @fact root => roughly(1.0)
-        end
-    end
-
-    context("testing ridder") do
-        for f in funcs
-            root = ridder(f, a, b; xtol=0.1e-12)
-            @fact root => roughly(1.0)
-        end
-    end
 end
 
 end  # module
