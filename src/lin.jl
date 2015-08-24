@@ -88,17 +88,17 @@ function evalbase(p::LinParams, x=nodes(p), order=0)
     # If multiple orders are requested make recursive call 35-44
     k = length(order)
     if k > 1
-        B = cell(k)
+        B = Array(SparseMatrixCSC{Float64, Int}, k)
         for ii=1:k
-            B[ii] = linbase(breaks, evennum, x, order[ii])[1]
+            B[ii] = evalbase(p, x, order[ii])[1]
         end
         return B, x
     end
 
     # 46-49
     if order != 0
-        D, n, a, b, params = lindop(breaks, evennum, order)
-        B = linbase(params..., x)[1] * D[end]
+        D, n, a, b, params = derivative_op(p, order)
+        B = evalbase(params, x)[1] * D[end]
         return B, x
     end
 
