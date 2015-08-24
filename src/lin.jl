@@ -36,12 +36,12 @@ function derivative_op(p::LinParams, order=1)
 
     newbreaks = breaks
     n = length(breaks)
-    D = cell(abs(order))
+    D = Array(SparseMatrixCSC{Float64, Int}, abs(order))
 
     for i in 1:order
         d = 1./diff(newbreaks)
-        d = sparse([1:n-1, 1:n-1], [1:n-1, 2:n], [-d, d], n-1, n)
-        if i>1
+        d = sparse([1:n-1; 1:n-1], [1:n-1; 2:n], [-d; d], n-1, n)
+        if i > 1
             D[i] = d*D[i-1]
         else
             D[1] = d
@@ -51,9 +51,9 @@ function derivative_op(p::LinParams, order=1)
     end
 
     for i in -1:-1:order
-        newbreaks=[dot([3,-1], newbreaks[1:2]);
+        newbreaks=[dot([3, -1], newbreaks[1:2]);
                    (newbreaks[1:end-1]+newbreaks[2:end]);
-                   dot([-1,3], newbreaks[end-1:end])]/2
+                   dot([-1, 3], newbreaks[end-1:end])]/2
         d = diff(newbreaks)'
         n = n+1
         d = tril(repmat(d, n, 1), -1)
@@ -77,7 +77,7 @@ function derivative_op(p::LinParams, order=1)
     b=newbreaks[end]
     params = LinParams(newbreaks, evennum > 0 ? evennum : 0)
 
-    return D, n, a, b, parms
+    return D, n, a, b, params
 
 end
 
