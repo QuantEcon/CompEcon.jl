@@ -43,26 +43,26 @@ facts("Test original API compat") do
     l = Lin()
 
     context("old_name for basis family") do
-        @fact old_name(s) --> :spli
-        @fact old_name(c) --> :cheb
-        @fact old_name(l) --> :lin
+        @fact Original.old_name(s) --> :spli
+        @fact Original.old_name(c) --> :cheb
+        @fact Original.old_name(l) --> :lin
     end
 
     context("old_name for params") do
-        @fact old_name(sp) --> :spli
-        @fact old_name(cp) --> :cheb
-        @fact old_name(lp) --> :lin
+        @fact Original.old_name(sp) --> :spli
+        @fact Original.old_name(cp) --> :cheb
+        @fact Original.old_name(lp) --> :lin
     end
 
     context("old_params") do
-        @fact CompEcon.old_params(sp) --> Any[sp.breaks, sp.evennum, sp.k]
-        @fact CompEcon.old_params(cp) --> Any[cp.n, cp.a, cp.b]
-        @fact CompEcon.old_params(lp) --> Any[lp.breaks, lp.evennum]
+        @fact Original.old_params(sp) --> Any[sp.breaks, sp.evennum, sp.k]
+        @fact Original.old_params(cp) --> Any[cp.n, cp.a, cp.b]
+        @fact Original.old_params(lp) --> Any[lp.breaks, lp.evennum]
     end
 
     context("convert(Basis, Dict) and revert(Basis) --> Dict") do
         b = Basis(sp, cp)
-        d = revert(b)
+        d = Original.revert(b)
         @fact convert(Basis, d) --> b
     end
 
