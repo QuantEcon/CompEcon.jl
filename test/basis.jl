@@ -37,9 +37,9 @@ facts("Test Basis") do
         @fact Basis(bt, n, a, b, params) --> b_all
 
         # use Basis(Type, args...) constructor
-        @fact Basis(Spline, CompEcon.old_params(params[1])...) --> b1
-        @fact Basis(Cheb, CompEcon.old_params(params[2])...) --> b2
-        @fact Basis(Lin, CompEcon.old_params(params[3])...) --> b3
+        @fact Basis(Spline, Original.old_params(params[1])...) --> b1
+        @fact Basis(Cheb, Original.old_params(params[2])...) --> b2
+        @fact Basis(Lin, Original.old_params(params[3])...) --> b3
 
         # use Basis(params) constructor
         @fact Basis(params[1]) --> b1
@@ -76,7 +76,7 @@ facts("Test Basis") do
     context("getindex and combining preserves basis") do
         @fact b_all[1] --> b1
         @fact b_all[2] --> b2
-        @fact b_all[3] --> b3        
+        @fact b_all[3] --> b3
         @fact Basis(b_all[1], b_all[2], b_all[3]) --> b_all
         for b in [b1, b2, b3]
             @fact b[1] --> b
