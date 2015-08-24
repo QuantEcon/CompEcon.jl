@@ -221,6 +221,19 @@ function squeeze_trail(x::Array)
     squeeze(x, tuple(squeezers...))
 end
 
+
+function lookup(table::Vector, x::Real, p::Int=0)
+    ind = searchsortedfirst(table, x) - 1
+    m = length(table)
+    if ind == m && p >= 2
+        return m - sum(table .== table[end])
+    end
+    if ind == 0 && (p == 1 || p == 3)
+        return sum(table .== table[1])
+    end
+    ind
+end
+
 # lookup.c -- DONE
 function lookup(table::Vector, x::Vector, p::Int=0)
     n = length(table)
