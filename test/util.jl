@@ -25,6 +25,12 @@ facts("test CompEcon.lookup") do
     @fact CompEcon.lookup([1.0], x2, 2) --> [0, 1]
     @fact CompEcon.lookup([1.0], x2, 3) --> [1, 1]
 
+    # test scalar version of lookup
+    x2 = collect(linspace(-2.0, 4.0, 10))
+    @fact [CompEcon.lookup(x2, -3.0, i) for i=0:3] --> [0, 1, 0, 1]
+    @fact [CompEcon.lookup(x2, 5.0, i) for i=0:3] --> [10, 10, 9, 9]
+    @fact [CompEcon.lookup(x2, i, 0) for i=x2] --> collect(0:length(x2)-1)
+    @fact [CompEcon.lookup(x2, i, 1) for i=x2] --> [1; 1:length(x2)-1]
 end
 
 facts("test CompEcon._check_order") do
