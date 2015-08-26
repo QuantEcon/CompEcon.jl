@@ -26,6 +26,19 @@ facts("Test Linear Basis") do
 
     end
 
+    context("test derivative") do
+
+    	#test derivative of basis indirectly, by fitting exponential function
+		bas2 = Basis(LinParams([0,1.0],1000000))
+		coeffs = funfitf(bas2,exp)
+		points = rand(10000)
+
+		d1 = funeval(coeffs,bas2,points,1)
+
+        @fact d1 --> roughly(exp(points),atol=1e-7)
+
+    end
+
 end
 
 end
