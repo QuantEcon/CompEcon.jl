@@ -126,7 +126,7 @@ function funeval(c, bs::BasisStructure{Tensor},
     kk, d = size(order)  # 95
 
     # 98 reverse the order of evaluation: B(d) × B(d-1) × ⋯ × B(1)
-    order = flipdim(order+1*(size(bs.vals, 1) * (0:d-1)' - bs.order+1), 2)
+    order = flipdim(order .+ (size(bs.vals, 1)*(0:d-1)' - bs.order+1), 2)
 
     # 99
     nx = prod([size(bs.vals[1, j], 1) for j=1:d])
@@ -143,7 +143,7 @@ function funeval(c, bs::BasisStructure{Direct},
                  order::Matrix{Int}=fill(0, 1, size(bs.order, 2)))  # funeval2
     kk, d = size(order)  # 95
     # 114 reverse the order of evaluation: B(d)xB(d-1)x...xB(1)
-    order = flipdim(order+1*(size(bs.vals, 1) * (0:d-1)' - bs.order+1), 2)
+    order = flipdim(order .+ (size(bs.vals, 1)*(0:d-1)' - bs.order+1), 2)
 
     f = zeros(size(bs.vals[1], 1), size(c, 2), kk)  # 116
 
