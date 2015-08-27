@@ -2,3 +2,4 @@
 *.jl.mem
 .ipynb_checkpoints/
 *tags*
+*.cov
