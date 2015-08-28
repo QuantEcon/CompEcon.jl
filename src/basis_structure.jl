@@ -249,7 +249,7 @@ function BasisStructure{N,BF}(basis::Basis{N,BF}, ::Direct,
 
         #131-135
         if length(orderj) == 1
-            vals[1, j] = evalbase(basis.params[j], x[:, j], orderj)[1]
+            vals[1, j] = evalbase(basis.params[j], x[:, j], orderj[1])[1]
         else
             vals[orderj-minorder[j]+1, j] =
                 evalbase(basis.params[j], x[:, j], orderj)[1]
