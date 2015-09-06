@@ -83,7 +83,7 @@ function evalbase(p::ChebParams, x=nodes(p, 1), order=0, nodetype=1)
 
     if length(order) == 1
         if order != 0
-            D = chebdop(n, a, b, order)[1]
+            D = derivative_op(p, order)[1]
             B = bas[:, 1:n-order]*D[abs(order)]
         else
             B = bas
@@ -91,8 +91,8 @@ function evalbase(p::ChebParams, x=nodes(p, 1), order=0, nodetype=1)
     else
         B = cell(length(order))
         maxorder = maximum(order)
-        if maxorder > 0 D = chebdop(n, a, b, maxorder)[1] end
-        if maxorder < 0 I = chebdop(n, a, b, minorder)[1] end
+        if maxorder > 0 D = derivative_op(p, maxorder)[1] end
+        if maxorder < 0 I = derivative_op(p, minorder)[1] end
         for ii=1:length(order)
             if order[ii] == 0
                 B[ii] = bas[:, 1:n]

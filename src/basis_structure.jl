@@ -47,7 +47,7 @@ end
     x
 end
 
-@inline function _checkx{T<:Number}(N, x::AbstractVector{T})
+@inline function _checkx{T}(N, x::AbstractVector{T})
     # if we have a 1d basis, we can evaluate at each point
     if N == 1
         return x
@@ -62,7 +62,7 @@ end
     error("Basis is $N dimensional, x must have $N elements")
 end
 
-@inline function _checkx{T<:Number}(N, x::Vector{Vector{T}})
+@inline function _checkx{T}(N, x::Vector{Vector{T}})
     # for BasisStructure{Tensor} family. Need one vector per dimension
     if length(x) == N
         return x
@@ -92,7 +92,7 @@ Do common transformations to all constructor of `BasisStructure`
 ##### Arguments
 
 - `N::Int`: The number of dimensions in the corresponding `Basis`
-- `x::Array{Float64}`: The points for which the `BasisStructure` should be
+- `x::Array`: The points for which the `BasisStructure` should be
 constructed
 - `order::Array{Int}`: The order of evaluation for each dimension of the basis
 
@@ -106,7 +106,7 @@ specifications, gives the derivative order along all `N` dimensions
 derivative order along each dimension
 - `numbases::Matrix{Int}`: A `1 × N` matrix specifying the total number of
 distinct derivative orders along each dimension
-- `x::Array{Float64}`: The properly transformed points at which to evaluate
+- `x::Array`: The properly transformed points at which to evaluate
 the basis
 
 """
@@ -229,7 +229,7 @@ end
 # method to construct BasisStructure in direct or expanded form based on
 # a matrix of `x` values  -- funbasex
 function BasisStructure{N,BF}(basis::Basis{N,BF}, ::Direct,
-                              x::Array{Float64}=nodes(basis)[1], order=0)
+                              x::Array=nodes(basis)[1], order=0)
 
     m, order, minorder, numbases, x = check_basis_structure(N, x, order)
     # 76-77
@@ -267,7 +267,7 @@ function BasisStructure{N,BF}(basis::Basis{N,BF}, ::Direct,
 end
 
 function BasisStructure(basis::Basis, ::Expanded,
-                        x::Array{Float64}=nodes(basis)[1], order=0)  # funbasex
+                        x::Array=nodes(basis)[1], order=0)  # funbasex
     # create direct form, then convert to expanded
     bsd = BasisStructure(basis, Direct(), x, order)
     convert(Expanded, bsd)
