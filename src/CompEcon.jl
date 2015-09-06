@@ -112,7 +112,7 @@ include("original.jl")
 include("cheb.jl")
 include("spline.jl")
 include("lin.jl")
-include("complete.jl")
+# include("complete.jl")
 
 # include quad
 include("quad.jl")
