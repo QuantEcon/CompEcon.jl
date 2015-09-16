@@ -72,12 +72,12 @@ end
 # Basis Type #
 # ---------- #
 
-type Basis{N, BF<:BasisFamily, BP<:BasisParams}
-    basistype::Vector{BF}  # Basis family
+type Basis{N, BFT, BPT}
+    basistype::BFT  	   # Basis family
     n::Vector{Int}         # number of points and/or basis functions
     a::Vector{Float64}     # lower bound of domain
     b::Vector{Float64}     # upper bound of domain
-    params::Vector{BP}     # params to construct basis
+    params::BPT     	   # params to construct basis
 end
 
 function Base.writemime{N}(io::IO, ::MIME"text/plain", b::Basis{N})
@@ -89,20 +89,20 @@ function Base.writemime{N}(io::IO, ::MIME"text/plain", b::Basis{N})
 end
 
 # constructor that takes all arguments and ensures each has N elemnets
-function Basis{BF<:BasisFamily, BP<:BasisParams}(basistype::Vector{BF},
-                                                 n::Vector{Int},
-                                                 a::Vector{Float64},
-                                                 b::Vector{Float64},
-                                                 params::Vector{BP})
+function Basis{BFT, BPT}(basistype::BFT,
+                                       n::Vector{Int},
+                                       a::Vector{Float64},
+                                       b::Vector{Float64},
+                                       params::BPT)
     N = length(basistype)
     @assert all(map(length, Any[n, a, b, params]) .== N)
-    Basis{N,BF,BP}(basistype, n, a, b, params)
+    Basis{N,BFT,BPT}(basistype, n, a, b, params)
 end
 
-# univariate basis. Helper to wrap all args in arrays
-function Basis{BF<:BasisFamily, BP<:BasisParams}(bt::BF, n::Int, a::Float64,
-                                                 b::Float64, params::BP)
-    Basis{1,BF,BP}([bt], [n], [a], [b], [params])
+# univariate basis. Helper to wrap all args in arrays and tuples
+function Basis{BFT, BPT}(bt::BFT, n::Int, a::Float64,
+                                              b::Float64, params::BPT)
+    Basis{1,BFT,BPT}((bt), [n], [a], [b], (params))
 end
 
 # constructor to allow `Basis(Spline, breaks, evennum, k)` instead of just
@@ -120,10 +120,10 @@ function Basis(b1::Basis, bs::Basis...)
     N = length(n)
 
     # determine if BF and BP type are concrete or use fall-back abstracts
-    BF1, BP1 = map(x->typeof(x[1]), Any[b1.basistype, b1.params])
-    BF = all(map(x->isa(x, BF1), basistype[2:end])) ? BF1 : BasisFamily
-    BP = all(map(x->isa(x, BP1), params[2:end])) ? BP1 : BasisParams
-    Basis{N,BF,BP}(basistype, n, a, b, params)::Basis{N,BF,BP}
+    # BF1, BP1 = map(x->typeof(x[1]), Any[b1.basistype, b1.params])
+    # BF = all(map(x->isa(x, BF1), basistype[2:end])) ? BF1 : BasisFamily
+    # BP = all(map(x->isa(x, BP1), params[2:end])) ? BP1 : BasisParams
+    # Basis{N,BF,BP}(basistype, n, a, b, params)::Basis{N,BF,BP}
 end
 
 Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
