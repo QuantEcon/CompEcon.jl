@@ -7,17 +7,18 @@ using FactCheck
 
 
 facts("Test Basis") do
-    bt = [Spline(), Cheb(), Lin()]
+    bt = (Spline(), Cheb(), Lin())
     n = [9, 7, 11]
     a = [-3, 1e-4, -4]
     b = [3, 10.0, 2]
-    params = [SplineParams(linspace(-3, 3, 9), 0, 1), ChebParams(7, 1e-4, 10.0), LinParams(linspace(-4, 2, 11), 0)]
+    params = (SplineParams(linspace(-3, 3, 9), 0, 1),
+              ChebParams(7, 1e-4, 10.0), LinParams(linspace(-4, 2, 11), 0))
 
     # use univariate constructors
     b1, b2, b3 = map(Basis, bt, n, a, b, params)
 
     # directly construct multivariate basis using (default) inner constructor
-    b_all = Basis{3,BasisFamily,BasisParams}(bt, n, a, b, params)
+    b_all = Basis(bt, n, a, b, params)
 
     # should be equivalent to Basis(b1, b1)
     b_spline3d = Basis(Spline(), [n[1], n[1]], [a[1], a[1]], [b[1], b[1]], [1, 1])
@@ -66,17 +67,17 @@ facts("Test Basis") do
         @fact ==(b_lin3d, b3) --> false
 
         # test concrete types come out when possible
-        @fact isa(Basis(b1, b1), Basis{2,Spline,SplineParams}) --> true
-        @fact isa(Basis(b2, b2), Basis{2,Cheb,ChebParams}) --> true
-        @fact isa(Basis(b3, b3), Basis{2,Lin,LinParams}) --> true
-        @fact isa(Basis(b2, b2, b1), Basis{3,BasisFamily,BasisParams}) --> true
-        @fact isa(Basis(b3, b2, b1), Basis{3,BasisFamily,BasisParams}) --> true
+        @fact isa(Basis(b1, b1), Basis{2,Tuple{Spline,Spline},Tuple{SplineParams,SplineParams}}) --> true
+        @fact isa(Basis(b2, b2), Basis{2,Tuple{Cheb,Cheb},Tuple{ChebParams,ChebParams}}) --> true
+        @fact isa(Basis(b3, b3), Basis{2,Tuple{Lin,Lin},Tuple{LinParams,LinParams}}) --> true
+        @fact isa(Basis(b2, b2, b1), Basis{3,Tuple{Cheb,Cheb,Spline},Tuple{ChebParams,ChebParams,SplineParams}}) --> true
+        @fact isa(Basis(b3, b2, b1), Basis{3,Tuple{Lin,Cheb,Spline},Tuple{LinParams,ChebParams,SplineParams}}) --> true
     end
 
     context("getindex and combining preserves basis") do
         @fact b_all[1] --> b1
         @fact b_all[2] --> b2
-        @fact b_all[3] --> b3        
+        @fact b_all[3] --> b3
         @fact Basis(b_all[1], b_all[2], b_all[3]) --> b_all
         for b in [b1, b2, b3]
             @fact b[1] --> b

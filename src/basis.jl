@@ -72,7 +72,7 @@ end
 # Basis Type #
 # ---------- #
 
-type Basis{N, BFT, BPT}
+type Basis{N, BFT<:Tuple, BPT<:Tuple}
     basistype::BFT  	   # Basis family
     n::Vector{Int}         # number of points and/or basis functions
     a::Vector{Float64}     # lower bound of domain
@@ -88,8 +88,17 @@ function Base.writemime{N}(io::IO, ::MIME"text/plain", b::Basis{N})
     print(m)
 end
 
+# univariate basis. Helper to wrap all args in arrays and tuples
+function Basis{BT<:BasisFamily, PT<:BasisParams}(bt::BT, n::Int,
+                                                 a::Real,
+                                                 b::Real, params::PT)
+    a = convert(Float64, a)
+    b = convert(Float64, b)
+    Basis{1,Tuple{BT},Tuple{PT}}((bt,), [n], [a], [b], (params,))
+end
+
 # constructor that takes all arguments and ensures each has N elemnets
-function Basis{BFT, BPT}(basistype::BFT,
+function Basis{BFT<:Tuple, BPT<:Tuple}(basistype::BFT,
                                        n::Vector{Int},
                                        a::Vector{Float64},
                                        b::Vector{Float64},
@@ -99,46 +108,39 @@ function Basis{BFT, BPT}(basistype::BFT,
     Basis{N,BFT,BPT}(basistype, n, a, b, params)
 end
 
-# univariate basis. Helper to wrap all args in arrays and tuples
-function Basis{BFT, BPT}(bt::BFT, n::Int, a::Float64,
-                                              b::Float64, params::BPT)
-    Basis{1,BFT,BPT}((bt), [n], [a], [b], (params))
-end
 
 # constructor to allow `Basis(Spline, breaks, evennum, k)` instead of just
 # `Basis(Spline(), breaks, evennum, k)`
 Basis{BT<:BasisFamily}(::Type{BT}, args...) = Basis(BT(), args...)
 
+_tupcat(t1::Tuple, t2::Tuple) = tuple(t1..., t2...)
+
 # combining basis -- fundef-esque method
 function Basis(b1::Basis, bs::Basis...)
     Nb = length(bs)
-    basistype = vcat(b1.basistype, [bs[i].basistype for i=1:Nb]...)
+    basistype = foldl(_tupcat, b1.basistype, [bs[i].basistype for i in 1:Nb])
     n = vcat(b1.n, [bs[i].n for i=1:Nb]...)
     a = vcat(b1.a, [bs[i].a for i=1:Nb]...)
     b = vcat(b1.b, [bs[i].b for i=1:Nb]...)
-    params = vcat(b1.params, [bs[i].params for i=1:Nb]...)
+    params = foldl(_tupcat, b1.params, [bs[i].params for i=1:Nb])
     N = length(n)
 
-    # determine if BF and BP type are concrete or use fall-back abstracts
-    # BF1, BP1 = map(x->typeof(x[1]), Any[b1.basistype, b1.params])
-    # BF = all(map(x->isa(x, BF1), basistype[2:end])) ? BF1 : BasisFamily
-    # BP = all(map(x->isa(x, BP1), params[2:end])) ? BP1 : BasisParams
-    # Basis{N,BF,BP}(basistype, n, a, b, params)::Basis{N,BF,BP}
+    Basis{N,typeof(basistype),typeof(params)}(basistype, n, a, b, params)
 end
 
 Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
 
-# construct basis out of multiple Params (type assertion for stability)
+# construct basis out of multiple Params
 Basis(p::BasisParams, ps::BasisParams...) =
-    Basis(Basis(p), Basis[Basis(p) for p in ps]...)::Basis{length(ps) + 1}
+    Basis(Basis(p), Basis[Basis(p) for p in ps]...)
 
 # fundefn type method
 Basis{T<:BasisFamily}(bt::T, n::Vector, a::Vector, b::Vector) =
-    Basis(map(_param(T), n, a, b)...)::Basis{length(n)}
+    Basis(map(_param(T), n, a, b)...)
 
-# special method for Spline that adds `k` argument
-Basis(::Spline, n::Vector, a::Vector, b::Vector, k::Vector=ones(Int, length(n))) =
-    Basis(map(SplineParams, n, a, b, k)...)::Basis{length(n)}
+
+Basis{T<:BasisFamily}(bt::T, n::Vector, a::Vector, b::Vector, k::Vector) =
+    Basis(map(_param(T), n, a, b, k)...)
 
 # separating Basis -- just re construct it from the nth set of params
 function Base.getindex{N}(basis::Basis{N}, n::Int)
