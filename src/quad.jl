@@ -677,7 +677,7 @@ to the integral as n goes to infinity.
 - `n::Union(Int, Vector{Int})` : Number of desired nodes along each dimension
 - `a::Union(Real, Vector{Real})` : Lower endpoint along each dimension
 - `b::Union(Real, Vector{Real})` : Upper endpoint along each dimension
-- `kind::String("N")`: One of the following:
+- `kind::AbstractString("N")`: One of the following:
     - N - Neiderreiter (default)
     - W - Weyl
     - H - Haber
@@ -692,7 +692,7 @@ $(qnw_refs)
 """
 :qnwequi
 
-function qnwequi(n::Int, a::Vector, b::Vector, kind::String="N")
+function qnwequi(n::Int, a::Vector, b::Vector, kind::AbstractString="N")
     # error checking
     n_a, n_b = length(a), length(b)
     if !(n_a == n_b)
@@ -733,25 +733,25 @@ function qnwequi(n::Int, a::Vector, b::Vector, kind::String="N")
 end
 
 # Other argument types
-qnwequi(n::Vector{Int}, a::Vector, b::Vector, kind::String="N") =
+qnwequi(n::Vector{Int}, a::Vector, b::Vector, kind::AbstractString="N") =
     qnwequi(prod(n), a, b, kind)
 
-qnwequi(n::Vector{Int}, a::Real, b::Vector, kind::String="N") =
+qnwequi(n::Vector{Int}, a::Real, b::Vector, kind::AbstractString="N") =
     qnwequi(prod(n), fill(a, length(b)), b, kind)
 
-qnwequi(n::Vector{Int}, a::Vector, b::Real, kind::String="N") =
+qnwequi(n::Vector{Int}, a::Vector, b::Real, kind::AbstractString="N") =
     qnwequi(prod(n), a, fill(b, length(a)), kind)
 
-qnwequi(n::Vector{Int}, a::Real, b::Real, kind::String="N") =
+qnwequi(n::Vector{Int}, a::Real, b::Real, kind::AbstractString="N") =
     qnwequi(prod(n), fill(a, length(n)), fill(b, length(n)), kind)
 
-qnwequi(n::Int, a::Real, b::Vector, kind::String="N") =
+qnwequi(n::Int, a::Real, b::Vector, kind::AbstractString="N") =
     qnwequi(n, fill(a, length(b)), b, kind)
 
-qnwequi(n::Int, a::Vector, b::Real, kind::String="N") =
+qnwequi(n::Int, a::Vector, b::Real, kind::AbstractString="N") =
     qnwequi(n, a, fill(b, length(a)), kind)
 
-qnwequi(n::Int, a::Real, b::Real, kind::String="N") =
+qnwequi(n::Int, a::Real, b::Real, kind::AbstractString="N") =
     qnwequi(n, [a], [b], kind)
 
 
@@ -796,7 +796,7 @@ function are caught by `args...` and `kwargs...``
 - `n::Union(Int, Vector{Int})` : Number of desired nodes along each dimension
 - `a::Union(Real, Vector{Real})` : Lower endpoint along each dimension
 - `b::Union(Real, Vector{Real})` : Upper endpoint along each dimension
-- `kind::String("lege")` Specifies which type of integration to perform. Valid
+- `kind::AbstractString("lege")` Specifies which type of integration to perform. Valid
 values are:
     - `"lege"` : Gauss-Legendre
     - `"cheb"` : Gauss-Chebyshev
