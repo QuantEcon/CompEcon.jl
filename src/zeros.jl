@@ -139,7 +139,7 @@ $__zero_docstr_arg_ret
 
 Matches `bisect` function from scipy/scipy/optimize/Zeros/bisect.c
 """
-function bisect{T<:FloatingPoint}(f::Function, x1::T, x2::T; maxiter::Int=500,
+function bisect{T<:AbstractFloat}(f::Function, x1::T, x2::T; maxiter::Int=500,
                                   xtol::Float64=1e-12, rtol::Float64=2*eps())
 
     tol = xtol + rtol*(abs(x1) + abs(x2))
@@ -196,7 +196,7 @@ end
     -fcur*(fblk - fpre)/(fblk*dpre - fpre*dblk)
 
 
-function _brent_body{T<:FloatingPoint}(BE::BrentExtrapolation, f::Function,
+function _brent_body{T<:AbstractFloat}(BE::BrentExtrapolation, f::Function,
                                        xa::T, xb::T, maxiter::Int=500,
                                        xtol::Float64=1e-12,
                                        rtol::Float64=2*eps())
@@ -293,7 +293,7 @@ $__zero_docstr_arg_ret
 
 Matches `brentq` function from scipy/scipy/optimize/Zeros/bisectq.c
 """
-function brent{T<:FloatingPoint}(f::Function, xa::T, xb::T; maxiter::Int=500,
+function brent{T<:AbstractFloat}(f::Function, xa::T, xb::T; maxiter::Int=500,
                                  xtol::Float64=1e-12, rtol::Float64=2*eps())
     _brent_body(BrentQuadratic(), f, xa, xb, maxiter, xtol, rtol)
 end
@@ -311,7 +311,7 @@ $__zero_docstr_arg_ret
 
 Matches `brenth` function from scipy/scipy/optimize/Zeros/bisecth.c
 """
-function brenth{T<:FloatingPoint}(f::Function, xa::T, xb::T; maxiter::Int=500,
+function brenth{T<:AbstractFloat}(f::Function, xa::T, xb::T; maxiter::Int=500,
                                   xtol::Float64=1e-12, rtol::Float64=2*eps())
     _brent_body(BrentHyperbolic(), f, xa, xb, maxiter, xtol, rtol)
 end
@@ -327,7 +327,7 @@ $__zero_docstr_arg_ret
 
 Matches `ridder` function from scipy/scipy/optimize/Zeros/ridder.c
 """
-function ridder{T<:FloatingPoint}(f::Function, xa::T, xb::T; maxiter::Int=500,
+function ridder{T<:AbstractFloat}(f::Function, xa::T, xb::T; maxiter::Int=500,
                                   xtol::Float64=1e-12, rtol::Float64=2*eps())
     tol = xtol + rtol*(abs(xa) + abs(xb))
 
