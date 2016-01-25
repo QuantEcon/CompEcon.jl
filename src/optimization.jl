@@ -43,22 +43,22 @@ end
 #     out_x, out_f
 # end
 
-function golden_method{T<:Real}(f::Function, a::T, b::T; tol::Float64=10*eps(),
-                                maxit::Int=1000)
+function golden_method(f::Function, a::Real, b::Real; tol::Float64=10*eps(),
+                       maxit::Int=1000)
     α1 = (3 - sqrt(5)) / 2
     α2 = 1 - α1
     d = b - a
     x1 = a + α1*d
     x2 = a + α2*d
-    s = one(T)
-    f1 = f(x1)
-    f2 = f(x2)
+    s = 1.0
+    f1 = f(x1)::Float64
+    f2 = f(x2)::Float64
 
     d = α1*α2*d
 
     it = 0
 
-    while d .> tol && it < maxit
+    while d > tol && it < maxit
         it += 1
 
         d *= α2
@@ -73,7 +73,7 @@ function golden_method{T<:Real}(f::Function, a::T, b::T; tol::Float64=10*eps(),
 
         s = sign(x2 - x1)
 
-        f2 = f(x2)
+        f2 = f(x2)::Float64
     end
 
     it >= maxit && warn("`golden_method`: maximum iterations exceeded")
@@ -83,5 +83,5 @@ function golden_method{T<:Real}(f::Function, a::T, b::T; tol::Float64=10*eps(),
         f1 = f2
     end
 
-    x1, f1
+    x1, f1::Float64
 end
