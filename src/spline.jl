@@ -128,12 +128,12 @@ function evalbase(p::SplineParams, x=nodes(p), order=0)
 
     # 76
     if maximum(order) > 0
-        D = splidop(breaks, evennum, k, maximum(order))[1]
+        D = derivative_op(SplineParams(breaks, evennum, k), maximum(order))[1]
     end
 
     # 77
     if minorder < 0
-        I = splidop(breaks, evennum, k, minorder)[1]
+        I = derivative_op(SplineParams(breaks, evennum, k), minorder)[1]
     end
 
     for j=1:k-minorder  # 78

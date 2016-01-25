@@ -1,3 +1,5 @@
+VERSION >= v"0.4.0-dev+6521" && __precompile__()
+
 module CompEcon
 
 #=
@@ -67,11 +69,14 @@ nodes(::PT)
 
 =#
 
-using Compat
-
 import Base: ==
 
+export Original
+
 export golden_method
+
+# zeros
+export bisect, brenth, brent, ridder, expand_bracket, divide_bracket
 
 # types
 export BasisFamily, Cheb, Lin, Spline, Basis,
@@ -81,42 +86,39 @@ export BasisFamily, Cheb, Lin, Spline, Basis,
 
 # functions
 export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
-       derivative_op, funbasex, row_kron, evaluate, fit!, update_coefs!
-
-
-# old API only
-export fundef, fundefn, funnode, funbase, funbasex, funeval, funbconv,
-       chebdef, chebnode, chebbase, chebbasex, chebdop,
-       splidef, splinode, splibase, splibasex, splidop,
-       lindef, linnode, linbase, lindop
+       derivative_op, funbasex, row_kron, evaluate, fit!, update_coefs!,
+       complete_polynomial, complete_polynomial!
 
 # quad
 export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
-       qnwunif, qnwlogn,
+       qnwunif, qnwlogn, qnwgh, qnwmonomial,
        quadrect,
        gridmake,
        do_quad
 
+# complete
+export complete_polynomial, complete_polynomial!, n_complete
+
 include("util.jl")
+include("zeros.jl")
 include("optimization.jl")
-include("original/core.jl")
 include("basis.jl")
 include("basis_structure.jl")
 include("interp.jl")
 
 # include the rest of the original API
-include("ml_compat.jl")
-include("original/cheb.jl")
-include("original/spli.jl")
-include("original/lin.jl")
+include("original.jl")
 
 # include the rest of the Julian API
 include("cheb.jl")
 include("spline.jl")
 include("lin.jl")
+# include("complete.jl")
 
 # include quad
 include("quad.jl")
 
+# include comlpete
+include("complete.jl")
 
 end # module
