@@ -39,8 +39,6 @@ end
     complete_polynomial_impl!(z, d, out)
 end
 
-Base.one{T<:AbstractString}(::Type{T}) = "one "
-
 function complete_polynomial_impl!{T,N}(z::Type{Matrix{T}}, ::Type{Degree{N}},
                                         out::Type{Matrix{T}})
     quote

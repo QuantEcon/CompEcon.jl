@@ -69,8 +69,6 @@ nodes(::PT)
 
 =#
 
-using Compat
-
 import Base: ==
 
 export Original
@@ -98,6 +96,9 @@ export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
        gridmake,
        do_quad
 
+# complete
+export complete_polynomial, complete_polynomial!, n_complete
+
 include("util.jl")
 include("zeros.jl")
 include("optimization.jl")
@@ -116,5 +117,8 @@ include("lin.jl")
 
 # include quad
 include("quad.jl")
+
+# include comlpete
+include("complete.jl")
 
 end # module
