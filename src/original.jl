@@ -1,3 +1,17 @@
+module Original
+
+using ..CompEcon
+
+for fn in ["core", "cheb", "spli", "lin"]
+    include("original/$(fn).jl")
+end
+
+# old API only
+export fundef, fundefn, funnode, funbase, funbasex, funeval, funbconv,
+       chebdef, chebnode, chebbase, chebbasex, chebdop,
+       splidef, splinode, splibase, splibasex, splidop,
+       lindef, linnode, linbase, lindop
+
 # Stuff We need to maintain compatibility with the matlab api
 
 ## BasisFamily stuff
@@ -30,7 +44,6 @@ old_params(p::LinParams) = Any[p.breaks, p.evennum]
 old_params(p::ChebParams) = Any[p.n, p.a, p.b]
 old_params(p::SplineParams) = Any[p.breaks, p.evennum, p.k]
 
-
 ## Basis stuff
 
 # convert old API to new API
@@ -52,10 +65,11 @@ function revert(b::Basis)
     B
 end
 
-
 # add method to funbasex that creates a BasisStructure
-funbasex(basis::Basis, x=nodes(basis)[1], order=0, bformat::ABSR=Direct()) =
+funbasex(basis::Basis, x=nodes(basis)[1], order=0, bformat::CompEcon.ABSR=Direct()) =
     BasisStructure(basis, x, order, bformat)
 
 funbase(basis::Basis, x=nodes(basis)[1], order=fill(0, 1, ndims(basis))) =
     funbasex(basis, x, order, Expanded()).vals[1]
+
+end  # module
