@@ -131,7 +131,7 @@ function funeval(c, bs::BasisStructure{Tensor},
     # 99
     nx = prod([size(bs.vals[1, j], 1) for j=1:d])
 
-    f = zeros(nx, size(c, 2), kk)  # 100
+    f = zeros(eltype(c), nx, size(c, 2), kk)  # 100
 
     for i=1:kk
         f[:, :, i] = ckronx(bs.vals, c, order[i, :])  # 102
@@ -145,7 +145,7 @@ function funeval(c, bs::BasisStructure{Direct},
     # 114 reverse the order of evaluation: B(d)xB(d-1)x...xB(1)
     order = flipdim(order .+ (size(bs.vals, 1)*(0:d-1)' - bs.order+1), 2)
 
-    f = zeros(size(bs.vals[1], 1), size(c, 2), kk)  # 116
+    f = zeros(eltype(c), size(bs.vals[1], 1), size(c, 2), kk)  # 116
 
     for i=1:kk
         f[:, :, i] = cdprodx(bs.vals, c, order[i, :])  # 118
@@ -173,7 +173,7 @@ function funeval(c, bs::BasisStructure{Expanded},
     end
 
     nx = size(bs.vals[1], 1)  # 151
-    f = zeros(nx, size(c, 2), kk)  # 152
+    f = zeros(eltype(c), nx, size(c, 2), kk)  # 152
     for i=1:kk
         f[:, :, i] = bs.vals[1]*c  # 154
     end
