@@ -153,8 +153,6 @@ function funeval(c, bs::BasisStructure{Direct},
     return squeeze_trail(f)
 end
 
-# TODO: bugs here. Need to find a better way to replicate the `iscell`
-#       calls in Matlab because bs.vals is never and Array{Any}
 function funeval(c, bs::BasisStructure{Expanded},
                  order::Matrix{Int}=fill(0, 1, size(bs.order, 2)))  # funeval3
     nx = size(bs.vals[1], 1)
@@ -164,7 +162,7 @@ function funeval(c, bs::BasisStructure{Expanded},
         this_order = order[i, :]
         ind = findfirst(x->bs.order[x, :] == this_order, 1:kk)
         if ind == 0
-            msg = string("Requested order $(this_order) not in BasisStructure ".
+            msg = string("Requested order $(this_order) not in BasisStructure ",
                          "with order $(bs.order)")
             error(msg)
         end
