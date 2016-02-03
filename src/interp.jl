@@ -175,7 +175,7 @@ function funeval(c, bs::BasisStructure{Expanded},
     nx = size(bs.vals[1], 1)  # 151
     f = zeros(eltype(c), nx, size(c, 2), kk)  # 152
     for i=1:kk
-        f[:, :, i] = bs.vals[1]*c  # 154
+        f[:, :, i] = bs.vals[i]*c  # 154
     end
 
     return squeeze_trail(f)
