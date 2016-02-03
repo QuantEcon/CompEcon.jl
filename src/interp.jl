@@ -157,25 +157,18 @@ end
 #       calls in Matlab because bs.vals is never and Array{Any}
 function funeval(c, bs::BasisStructure{Expanded},
                  order::Matrix{Int}=fill(0, 1, size(bs.order, 2)))  # funeval3
-
-    if isempty(order)
-        # TODO: if bs is in Expanded form then why would we ever have cell here?
-        #       maybe if we are evaluating derivatives also?
-        if isa(bs.vals, Vector{Vector{eltype(bs.vals[1])}})
-            kk = length(bs.vals)  # 126
-            order = 1:kk'  # 127
-        else
-            kk = 1  # 128
-            order = 1  # 129
-        end
-    else
-        kk = size(order, 1)  # 133
-    end
-
-    nx = size(bs.vals[1], 1)  # 151
-    f = zeros(eltype(c), nx, size(c, 2), kk)  # 152
+    nx = size(bs.vals[1], 1)
+    kk = size(order, 1)
+    f = zeros(promote_type(eltype(c), eltype(bs.vals[1])), nx, size(c, 2), kk)
     for i=1:kk
-        f[:, :, i] = bs.vals[i]*c  # 154
+        this_order = order[i, :]
+        ind = findfirst(x->bs.order[x, :] == this_order, 1:kk)
+        if ind == 0
+            msg = string("Requested order $(this_order) not in BasisStructure ".
+                         "with order $(bs.order)")
+            error(msg)
+        end
+        f[:, :, i] = bs.vals[ind]*c  # 154
     end
 
     return squeeze_trail(f)
