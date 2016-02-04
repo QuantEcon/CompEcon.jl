@@ -132,10 +132,13 @@ facts("Test Basis") do
     end
 
     # call show (which calls writemime) so I can get 100% coverage :)
-    println(ChebParams(10, -1, 1))
-    println(SplineParams(10, -1, 1))
-    println(LinParams(10, -1, 1))
-    println(b_all)
+    context("Printing") do
+        iob = IOBuffer())
+        show(iob, ChebParams(10, -1, 1))
+        show(iob, SplineParams(10, -1, 1))
+        show(iob, LinParams(10, -1, 1))
+        show(iob, b_all)
+    end
 end
 
 end
