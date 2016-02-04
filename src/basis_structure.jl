@@ -143,8 +143,8 @@ _vals_type{TF<:BasisFamily}(::TF) = _vals_type(TF)
 # convert methods #
 # --------------- #
 
-# no-op
-Base.convert{T<:ABSR}(::Type{T}, bs::BasisStructure{T}) = bs
+# no-op. Don't worry about the order argument.
+Base.convert{T<:ABSR}(::Type{T}, bs::BasisStructure{T}, order=bs.order) = bs
 
 # funbconv from direct to expanded
 function Base.convert{TM}(::Type{Expanded}, bs::BasisStructure{Direct,TM},
@@ -268,7 +268,7 @@ function BasisStructure(basis::Basis, ::Expanded,
                         x::Array=nodes(basis)[1], order=0)  # funbasex
     # create direct form, then convert to expanded
     bsd = BasisStructure(basis, Direct(), x, order)
-    convert(Expanded, bsd)
+    convert(Expanded, bsd, bsd.order)
 end
 
 function BasisStructure{N,BF,T}(basis::Basis{N,BF}, ::Tensor,
