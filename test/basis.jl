@@ -133,7 +133,7 @@ facts("Test Basis") do
 
     # call show (which calls writemime) so I can get 100% coverage :)
     context("Printing") do
-        iob = IOBuffer())
+        iob = IOBuffer()
         show(iob, ChebParams(10, -1, 1))
         show(iob, SplineParams(10, -1, 1))
         show(iob, LinParams(10, -1, 1))
