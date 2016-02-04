@@ -268,7 +268,7 @@ function BasisStructure(basis::Basis, ::Expanded,
                         x::Array=nodes(basis)[1], order=0)  # funbasex
     # create direct form, then convert to expanded
     bsd = BasisStructure(basis, Direct(), x, order)
-    convert(Expanded, bsd, bds.order)
+    convert(Expanded, bsd, bsd.order)
 end
 
 function BasisStructure{N,BF,T}(basis::Basis{N,BF}, ::Tensor,
