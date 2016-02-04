@@ -131,6 +131,15 @@ facts("Test Basis Structure Representations") do
         nothing
     end
 
+    context("Test from PR #25") do
+        basisμ = CompEcon.Basis(Cheb, 20, 0.0, 1.0)
+        basisσ = CompEcon.Basis(Cheb, 20, 0.0, 1.0)
+        basis = CompEcon.Basis(basisμ, basisσ)
+        S, (μs, σs) = CompEcon.nodes(basis)
+        bs = CompEcon.BasisStructure(basis, CompEcon.Expanded(), S, [0 2])
+        @fact isa(bs, CompEcon.BasisStructure{Expanded}) --> true
+    end
+
 
     # call show (which calls writemime) so we can get 100% coverage
     println(Φ_tensor)
