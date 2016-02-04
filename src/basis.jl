@@ -19,10 +19,10 @@ type ChebParams <: BasisParams
     b::Float64
 end
 
-function Base.writemime(io::IO, ::MIME"text/plain", p::ChebParams)
+function Base.show(io::IO, p::ChebParams)
     m = string("Chebyshev interpoland parameters with ",
                "$(p.n) basis functions from $(p.a), $(p.b)")
-    print(m)
+    print(io, m)
 end
 
 type SplineParams <: BasisParams
@@ -35,10 +35,10 @@ end
 SplineParams(n::Int, a::Real, b::Real, k::Int=3) =
     SplineParams(collect(linspace(a, b, n)), 0, k)
 
-function Base.writemime(io::IO, ::MIME"text/plain", p::SplineParams)
+function Base.show(io::IO, p::SplineParams)
     m = string("$(p.k) order spline interpoland parameters from ",
                "$(p.breaks[1]), $(p.breaks[end])")
-    print(m)
+    print(io, m)
 end
 
 type LinParams <: BasisParams
@@ -50,10 +50,10 @@ end
 LinParams(n::Int, a::Real, b::Real) =
     LinParams(collect(linspace(a, b, n)), 0)
 
-function Base.writemime(io::IO, ::MIME"text/plain", p::LinParams)
+function Base.show(io::IO, p::LinParams)
     m = string("piecewise linear interpoland parameters ",
                "from $(p.breaks[1]), $(p.breaks[end])")
-    print(m)
+    print(io, m)
 end
 
 for (T, TP) in [(Cheb, ChebParams), (Lin, LinParams), (Spline, SplineParams)]
@@ -80,12 +80,12 @@ type Basis{N, BF<:BasisFamily, BP<:BasisParams}
     params::Vector{BP}     # params to construct basis
 end
 
-function Base.writemime{N}(io::IO, ::MIME"text/plain", b::Basis{N})
+function Base.show{N}(io::IO, b::Basis{N})
     m = """
     $N dimensional Basis on the hypercube formed by $(b.a) × $(b.b).
     Basis families are $(join(map(x->string(typeof(x)), b.basistype), " × "))
     """
-    print(m)
+    print(io, m)
 end
 
 # constructor that takes all arguments and ensures each has N elemnets

@@ -235,7 +235,5 @@ update_coefs!(interp::Interpoland, f::Function) =
 fit!(interp::Interpoland, y::Vector) = update_coefs!(interp, y)
 fit!(interp::Interpoland, f::Function) = update_coefs!(interp, f)
 
-function Base.writemime{T,N,BST<:ABSR}(io::IO, ::MIME"text/plain",
-                                       ::Interpoland{T,N,BST})
-    print("$N dimensional interpoland with $BST BasisStructure")
-end
+Base.show{T,N,BST<:ABSR}(io::IO, ::Interpoland{T,N,BST}) =
+    print(io, "$N dimensional interpoland with $BST BasisStructure")

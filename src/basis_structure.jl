@@ -14,8 +14,8 @@ type BasisStructure{BST<:ABSR, TM<:AbstractMatrix}
     vals::Matrix{TM}
 end
 
-Base.writemime{BST}(io::IO, ::MIME"text/plain", b::BasisStructure{BST}) =
-    print("BasisStructure{$BST} of order $(b.order)")
+Base.show{BST}(io::IO, b::BasisStructure{BST}) =
+    print(io, "BasisStructure{$BST} of order $(b.order)")
 
 Base.ndims(bs::BasisStructure) = size(bs.order, 2)
 # TODO: determine if I want `size(bs, i::Int)` methods to do
