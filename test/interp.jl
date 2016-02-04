@@ -78,6 +78,11 @@ for i in 1:3
             @fact CompEcon.evaluate(intp3,X) --> roughly(y; atol=1e-15)
         end
 
+        context("Printing") do
+            iob = IOBuffer()
+            show(iob, CompEcon.Interpoland(basis, bs_direct, y))
+        end
+
         # TODO: call show on an interpoland instance to get coverage for writemime
 
     end  # facts

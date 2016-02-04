@@ -142,7 +142,10 @@ facts("Test Basis Structure Representations") do
 
 
     # call show (which calls writemime) so we can get 100% coverage
-    println(Φ_tensor)
+    context("Printing") do
+        iob = IOBuffer()
+        show(iob, Φ_tensor)
+    end
 
 end  # facts
 
