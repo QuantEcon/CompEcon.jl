@@ -2,17 +2,6 @@
 # Helper functions #
 # ---------------- #
 
-# fix.m -- DONE
-function fix!{T <: Real}(x::Array{T}, out::Array{Int})
-    for i=1:length(x)  # use linear indexing
-        out[i] = fix(x[i])
-    end
-    return out
-end
-
-fix{T<:Real}(x::Array{T}) = fix!(x, similar(x, Int))
-fix{T<:Real}(x::T) = x >= 0 ? floor(Int, x) : ceil(Int, x)
-
 # ckronx.m -- DONE
 function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
                                     ind::Matrix{Int}=reshape(1:length(b),
@@ -37,35 +26,6 @@ function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
         mm = mm * size(z, 1)  # 38
     end
     z = reshape(z, mm, size(c, 2))  # 40
-end
-
-# ckron.m -- DONE
-ckron(A::AbstractArray, B::AbstractArray) = kron(A, B)
-ckron(arrays::AbstractArray...) = reduce(kron, arrays)
-
-gridmake(v::AbstractVector) = v
-
-# gridmake.m -- DONE
-function gridmake{T}(arrays::AbstractVector{T}...)
-    # TODO: this gridmake works, but I don't like it.
-    shapes = Int[size(e, 1) for e in arrays]
-
-    n = length(arrays)
-    l = prod(shapes)
-    out = Array(T, l, n)
-
-    shapes = shapes[end:-1:1]
-    sh = push!([1], shapes[1:end-1]...)
-    repititions = cumprod(sh)
-    repititions = repititions[end:-1:1]
-
-    for i=1:n
-        arr = arrays[i]
-        outer = repititions[i]
-        inner = floor(Int, l / (outer * size(arr, 1)))
-        out[:, i] = repeat(arrays[i], inner=[inner], outer=[outer])
-    end
-    return out
 end
 
 # dprod.m  - DONE

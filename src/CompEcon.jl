@@ -71,8 +71,9 @@ nodes(::PT)
 
 import Base: ==
 
-export Original
+using QuantEcon: gridmake, gridmake!, ckron
 
+export Original
 export golden_method
 
 # zeros
