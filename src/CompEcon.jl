@@ -71,7 +71,10 @@ nodes(::PT)
 
 import Base: ==
 
-using QuantEcon: gridmake, gridmake!, ckron
+using QuantEcon: gridmake, gridmake!, ckron, fix, fix!, qnwlege, qnwcheb,
+                 qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
+                 qnwunif, qnwlogn,
+                 quadrect, do_quad
 
 export Original
 export golden_method
@@ -115,9 +118,6 @@ include("cheb.jl")
 include("spline.jl")
 include("lin.jl")
 # include("complete.jl")
-
-# include quad
-include("quad.jl")
 
 # include comlpete
 include("complete.jl")
