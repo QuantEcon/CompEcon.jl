@@ -94,12 +94,14 @@ function evalbase(p::LinParams, x=nodes(p), order::Int=0)
     #   (if x=b use the index of the next to last breakpoint).
     if p.evennum != 0
         ind = fix((x-p.breaks[1]).*((n-1)./(p.breaks[end]-p.breaks[1]))) + 1
-        ind = clamp(ind, 1, n-1)
+        clamp!(ind, 1, n-1)
     else
         ind = lookup(p.breaks, x, 3)
     end
 
     z = (x-p.breaks[ind])./(p.breaks[ind+1]-p.breaks[ind])
+
+    # TODO: figure out how to avoid the vcats and the sparse(I, J, V) call
     B = sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
     return B, x
 

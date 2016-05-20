@@ -14,8 +14,10 @@ chebnode(n::Int, a::Real, b::Real, nodetype=0) =
     nodes(ChebParams(n, a, b), nodetype)
 
 # chebdop.m -- DONE
-chebdop(n, a, b, order=1) =
-    derivative_op(ChebParams(n, a, b), order)
+function chebdop(n, a, b, order=1)
+    D, p = derivative_op(ChebParams(n, a, b), order)
+    D, p.n-order, p.a, p.b, Any[p.n-order, p.a, p.b]
+end
 
 
 # chebbase.m -- DONE

@@ -68,16 +68,17 @@ facts("test Cheb") do
     end
 
     context("test derivative/integral") do
-        deriv, ord_d, a_d, b_d, holder_d = CompEcon.derivative_op(params,1)
-        int, ord_i, a_i, b_i, holder_i = CompEcon.derivative_op(params,-1)
+        deriv, params_d = CompEcon.derivative_op(params,1)
+        int, params_i = CompEcon.derivative_op(params,-1)
 
-        @fact  (ord_d == params.n[1]-1,ord_i == params.n[1]+1) --> (true,true)
-        @fact  [a_d,b_d] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
-        @fact  [a_i,b_i] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
+        @fact  params_d.n == params.n[1]-1 --> true
+        @fact  params_i.n == params.n[1]+1 --> true
+        @fact  [params_d.a,params_d.b] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
+        @fact  [params_i.a,params_i.b] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
     end
 
     context("test evalbase") do
-        B, x = CompEcon.evalbase(params,nod,0,0)
+        B, x = @inferred CompEcon.evalbase(params,nod,0,0)
         @fact  B --> roughly(mB, atol = 1e-14)
     end
 
