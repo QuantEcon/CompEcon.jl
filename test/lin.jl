@@ -20,7 +20,7 @@ facts("Test Linear Basis") do
     context("test constructor") do
 
        valbas_lin = @inferred CompEcon.evalbase(bas1.params[1])
-       valbas_spl = CompEcon.evalbase(CompEcon.SplineParams([0.0,1.0,2.0,3.0,4.0],0,1))
+       valbas_spl = @inferred CompEcon.evalbase(CompEcon.SplineParams([0.0,1.0,2.0,3.0,4.0],0,1))
 
        @fact valbas_lin == valbas_spl --> true
 

@@ -80,7 +80,35 @@ function derivative_op(p::SplineParams, order=1)
         error("not implemented")
     end
 
-    D, n-order, breaks[1], breaks[end], Any[breaks, evennum, k-order]
+    D, SplineParams(breaks, evennum, k-order)
+end
+
+function _chk_evalbase(p::SplineParams, x, order)
+    breaks, evennum, k = p.breaks, p.evennum, p.k
+
+    # error handling
+    k < 0 && error("spline order must be positive")
+    !(issorted(breaks)) && error("Breakpoints must be non-decreasing")
+    any(order .>= k) && error("Order of differentiation must be less than k")
+    size(x, 2) > 1 && error("x must be a column vector")
+
+    m = size(x, 1)  # 54
+    minorder = minimum(order)  # 55
+
+    # Augment the breakpoint sequence 57-59
+    n = length(breaks)+k-1
+    a = breaks[1]
+    b = breaks[end]
+    augbreaks = vcat(fill(a, k-minorder), breaks, fill(b, k-minorder))
+
+    ind = lookup(augbreaks, x, 3)  # 69
+
+    n, m, minorder, augbreaks, ind
+end
+
+function evalbase(p::SplineParams, x=nodes(p), order::Int=0)
+    B, x = evalbase(p, x, [order])
+    B[1], x
 end
 
 """
@@ -101,42 +129,24 @@ at each point in `x`. Each column represents a basis function.
 - `x`: Points at which the functions were evaluated
 
 """
-function evalbase(p::SplineParams, x=nodes(p), order=0)
-    breaks, evennum, k = p.breaks, p.evennum, p.k
+function evalbase(p::SplineParams, x, order::AbstractVector{Int})
+    n, m, minorder, augbreaks, ind = _chk_evalbase(p, x, order)
 
-    # error handling
-    k < 0 && error("spline order must be positive")
-    !(issorted(breaks)) && error("Breakpoints must be non-decreasing")
-    any(order .>= k) && error("Order of differentiation must be less than k")
-    size(x, 2) > 1 && error("x must be a column vector")
-
-    p = length(breaks)  # 53
-    m = size(x, 1)  # 54
-    minorder = minimum(order)  # 55
-
-    # Augment the breakpoint sequence 57-59
-    n = length(breaks)+k-1
-    a = breaks[1]
-    b = breaks[end]
-    augbreaks = vcat(fill(a, k-minorder), breaks, fill(b, k-minorder))
-
-    ind = lookup(augbreaks, x, 3)  # 69
-
-    bas = zeros(m, k-minorder+1)  # 73
+    bas = zeros(m, p.k-minorder+1)  # 73
     bas[:, 1] = 1.0  # 74
-    B = cell(length(order))  # 75
+    B = Array(SparseMatrixCSC{Float64,Int}, length(order))  # 75
 
     # 76
     if maximum(order) > 0
-        D = derivative_op(SplineParams(breaks, evennum, k), maximum(order))[1]
+        D = derivative_op(p, maximum(order))[1]
     end
 
     # 77
     if minorder < 0
-        I = derivative_op(SplineParams(breaks, evennum, k), minorder)[1]
+        I = derivative_op(p, minorder)[1]
     end
 
-    for j=1:k-minorder  # 78
+    for j=1:p.k-minorder  # 78
         for jj=j:-1:1  # 79
             b0 = augbreaks[ind+jj-j]  # 80
             b1 = augbreaks[ind+jj]  # 81
@@ -144,18 +154,17 @@ function evalbase(p::SplineParams, x=nodes(p), order=0)
             bas[:, jj+1] = (x - b0) .* temp + bas[:, jj+1]  # 83
             bas[:, jj] = (b1-x) .* temp  # 84
         end
-        # bas now contains the order `j` spline basis
-        ii = find((k-j) .== order)  # 87
-        if !(isempty(ii))  # 88
-            ii = ii[1]  # 89
 
+        # bas now contains the order `j` spline basis
+        ii = findfirst(order, p.k-j)  # 87
+        if ii > 0
             # Put values in appropriate columns of a sparse matrix
             r = collect(1:m)''  # 91
-            r = r[:, fill(1, k-order[ii]+1)]  # 91
-            c = collect((order[ii] - k:0) - (order[ii] - minorder))'  # 92
-            c = c[fill(1, m), :] + ind[:, fill(1, k-order[ii] + 1)]  # 93
-            B[ii] = sparse(vec(r), vec(c), vec(bas[:, 1:k-order[ii]+1]),
-                           m, n-order[ii])  # 94 TODO: using vec might be slow
+            r = r[:, fill(1, p.k-order[ii]+1)]  # 91
+            c = collect((order[ii] - p.k:0) - (order[ii] - minorder))'  # 92
+            c = c[fill(1, m), :] + ind[:, fill(1, p.k-order[ii] + 1)]  # 93
+            B[ii] = sparse(vec(r), vec(c), vec(bas[:, 1:p.k-order[ii]+1]),
+                           m, n-order[ii])
 
             # 96-100
             if order[ii] > 0
@@ -166,9 +175,5 @@ function evalbase(p::SplineParams, x=nodes(p), order=0)
         end
     end
 
-    # 105
-    if length(order) == 1
-        B = B[1]
-    end
     B, x
 end

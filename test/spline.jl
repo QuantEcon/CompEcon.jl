@@ -6,7 +6,7 @@ using Base.Test
 using FactCheck
 
 facts("Test Spline Basis Evaluation") do
-    
+
     # constuct specific case that we can compute by hand
 
     n = 5
@@ -16,7 +16,7 @@ facts("Test Spline Basis Evaluation") do
 
     x = rand(10000)
 
-    basestr = CompEcon.evalbase(params,x)
+    basestr = @inferred CompEcon.evalbase(params,x)
     base = full(basestr[1])
 
     # vector of basis functions
