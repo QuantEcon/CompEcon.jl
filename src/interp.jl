@@ -174,7 +174,7 @@ end
 
 # ------------------------------ #
 # Convenience `Interpoland` type #
-# ------------------------------- #
+# ------------------------------ #
 
 type Interpoland{T,N,BST<:ABSR}
     basis::Basis{N}               # the basis -- can't change
