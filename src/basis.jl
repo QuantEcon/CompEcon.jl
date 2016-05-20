@@ -51,7 +51,7 @@ LinParams(n::Int, a::Real, b::Real) =
     LinParams(collect(linspace(a, b, n)), 0)
 
 function Base.show(io::IO, p::LinParams)
-    m = string("piecewise linear interpoland parameters ",
+    m = string("Piecewise linear interpoland parameters ",
                "from $(p.breaks[1]), $(p.breaks[end])")
     print(io, m)
 end
@@ -140,13 +140,17 @@ Basis{T<:BasisFamily}(bt::T, n::Vector, a::Vector, b::Vector) =
 Basis(::Spline, n::Vector, a::Vector, b::Vector, k::Vector=ones(Int, length(n))) =
     Basis(map(SplineParams, n, a, b, k)...)::Basis{length(n)}
 
+# ----------------- #
+# Basis API methods #
+# ----------------- #
+
 # separating Basis -- just re construct it from the nth set of params
 function Base.getindex{N}(basis::Basis{N}, n::Int)
     n < 0 || n > N && error("n must be between 1 and $N")
     Basis(basis.params[n])::Basis{1}
 end
 
-# Define standard Julia methods for Basis
+# AbstractArray like methods for Basis
 Base.ndims{N}(::Basis{N}) = N
 Base.length(b::Basis) = prod(b.n)
 Base.size(b::Basis, i::Int) = length(b[i])  # uses method on previous line
