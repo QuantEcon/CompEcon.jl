@@ -36,7 +36,7 @@ function derivative_op(p::ChebParams, order=1)
     n, a, b = p.n, p.a, p.b
     if order > 0
         # TODO: figure out some caching mechanism that avoids globals
-        D = cell(max(2, order), 1)  # 49
+        D = Array(SparseMatrixCSC{Float64,Int64}, max(2, order))  # 49
         i = repeat(collect(1:n), outer=[1, n]); j = i'  # 50
 
         # 51
@@ -53,7 +53,7 @@ function derivative_op(p::ChebParams, order=1)
             D[ii] = d[1:n-ii, 1:n-ii+1] * D[ii-1]  # 56
         end
     else
-        D = cell(abs(order), 1)  # 64
+        D = Array(SparseMatrixCSC{Float64,Int64}, abs(order))  # 64
         nn = n - order  # 65
         i = (0.25 * (b - a)) ./(1:nn)  # 66
         d = sparse(vcat(1:nn, 1:nn-2), vcat(1:nn, 3:nn), vcat(i, -i[1:nn-2]),
@@ -66,12 +66,12 @@ function derivative_op(p::ChebParams, order=1)
             D[-ii] = sparse(vcat(d0[ind]', d[ind, ind]) * D[-ii-1])
         end
     end
-    D, n-order, a, b, Any[n, a, b]
+    D, ChebParams(n-order, a, b)
 end
 
-function evalbase(p::ChebParams, x=nodes(p, 1), order=0, nodetype=1)
+function evalbase(p::ChebParams, x=nodes(p, 1), order::Int=0, nodetype::Int=1)
     n, a, b = p.n, p.a, p.b
-    minorder = min(0, minimum(order))  # 30
+    minorder = min(0, order)  # 30
 
     # compute 0-order basis
     if nodetype == 0
@@ -81,26 +81,40 @@ function evalbase(p::ChebParams, x=nodes(p, 1), order=0, nodetype=1)
         bas = evalbasex(ChebParams(n-minorder, a, b), x)  # 44
     end
 
-    if length(order) == 1
-        if order != 0
-            D = derivative_op(p, order)[1]
-            B = bas[:, 1:n-order]*D[abs(order)]
-        else
-            B = bas
-        end
+    if order != 0
+        D = derivative_op(p, order)[1]
+        B = bas[:, 1:n-order]*D[abs(order)]
     else
-        B = cell(length(order))
-        maxorder = maximum(order)
-        if maxorder > 0 D = derivative_op(p, maxorder)[1] end
-        if maxorder < 0 I = derivative_op(p, minorder)[1] end
-        for ii=1:length(order)
-            if order[ii] == 0
-                B[ii] = bas[:, 1:n]
-            elseif order[ii] > 0
-                B[ii] = bas[:, 1:n-order[ii]] * D[order[ii]]
-            else
-                B[ii] = bas[:, 1:n-order[ii]] * I[-order[ii]]
-            end
+        B = bas
+    end
+
+    return B, x
+end
+
+function evalbase(p::ChebParams, x, order::AbstractVector{Int}, nodetype::Int=1)
+    n, a, b = p.n, p.a, p.b
+    minorder = min(0, minimum(order))  # 30
+    maxorder = maximum(order)
+
+    # compute 0-order basis
+    if nodetype == 0
+        temp = ((n-0.5):-1:0.5)''  # 41
+        bas = cos((pi/n)*temp.*(0:(n-1-minorder))')  # 42
+    else
+        bas = evalbasex(ChebParams(n-minorder, a, b), x)  # 44
+    end
+
+    B = Array(Matrix{Float64}, length(order))
+    if maxorder > 0 D = derivative_op(p, maxorder)[1] end
+    if minorder < 0 I = derivative_op(p, minorder)[1] end
+
+    for ii=1:length(order)
+        if order[ii] == 0
+            B[ii] = bas[:, 1:n]
+        elseif order[ii] > 0
+            B[ii] = bas[:, 1:n-order[ii]] * D[order[ii]]
+        else
+            B[ii] = bas[:, 1:n-order[ii]] * I[-order[ii]]
         end
     end
 
