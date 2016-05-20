@@ -148,11 +148,13 @@ function evalbase(p::SplineParams, x, order::AbstractVector{Int})
 
     for j=1:p.k-minorder  # 78
         for jj=j:-1:1  # 79
-            b0 = augbreaks[ind+jj-j]  # 80
-            b1 = augbreaks[ind+jj]  # 81
-            temp = bas[:, jj] ./ (b1 - b0)  # 82
-            bas[:, jj+1] = (x - b0) .* temp + bas[:, jj+1]  # 83
-            bas[:, jj] = (b1-x) .* temp  # 84
+            for ix in eachindex(ind)
+                b0 = augbreaks[ind[ix]+jj-j]  # 80
+                b1 = augbreaks[ind[ix]+jj]  # 81
+                temp = bas[ix, jj] / (b1 - b0)  # 82
+                bas[ix, jj+1] = (x[ix] - b0) * temp + bas[ix, jj+1]  # 83
+                bas[ix, jj] = (b1-x[ix]) * temp  # 84
+            end
         end
 
         # bas now contains the order `j` spline basis
