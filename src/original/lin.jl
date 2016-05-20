@@ -12,8 +12,11 @@ end
 linnode(breaks, evennum) = nodes(LinParam(breaks, evennum))
 
 # lindop.m
-lindop(breaks, evennum, order) =
-    derivative_op(LinParam(breaks, evennum), order)
+function lindop(breaks, evennum, order)
+    D, params = derivative_op(LinParam(breaks, evennum), order)
+    n, a, b = length(params.breaks), params.breaks[1], params.breaks[end]
+    D, n, a, b, params
+end
 
 # linbase.m -- DONE
 linbase(breaks, evennum=0, x=breaks, order=0) =

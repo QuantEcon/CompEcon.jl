@@ -31,7 +31,7 @@ Basis(p::LinParams) = Basis(Lin(), p.breaks, p.evennum)
 
 nodes(p::LinParams) = p.breaks
 
-function derivative_op(p::LinParams, order=1)
+function derivative_op(p::LinParams, order::Int=1)
     breaks, evennum = p.breaks, p.evennum
 
     newbreaks = breaks
@@ -72,49 +72,44 @@ function derivative_op(p::LinParams, order=1)
         D[-i] = D[-i]-repmat(temp, length(newbreaks), 1)
     end
 
-    n=length(newbreaks)
-    a=newbreaks[1]
-    b=newbreaks[end]
     params = LinParams(newbreaks, evennum > 0 ? evennum : 0)
 
-    return D, n, a, b, params
+    return D, params
 
 end
 
-function evalbase(p::LinParams, x=nodes(p), order=0)
-    breaks, evennum = p.breaks, p.evennum
-    n = length(breaks)
-
-    # If multiple orders are requested make recursive call 35-44
-    k = length(order)
-    if k > 1
-        B = Array(SparseMatrixCSC{Float64, Int}, k)
-        for ii=1:k
-            B[ii] = evalbase(p, x, order[ii])[1]
-        end
-        return B, x
-    end
-
+function evalbase(p::LinParams, x=nodes(p), order::Int=0)
     # 46-49
     if order != 0
-        D, n, a, b, params = derivative_op(p, order)
-        B = evalbase(params, x)[1] * D[end]
+        D, params = derivative_op(p, order)
+        B = evalbase(params, x, 0)[1] * D[end]
         return B, x
     end
 
     m = size(x, 1)
+    n = length(p.breaks)
 
     # Determine the maximum index of
     #   the breakpoints that are less than or equal to x,
     #   (if x=b use the index of the next to last breakpoint).
-    if evennum != 0
-        ind = fix((x-breaks[1]).*((n-1)./(breaks[end]-breaks[1]))) + 1
-        ind = min(max(ind, 1), n-1)
+    if p.evennum != 0
+        ind = fix((x-p.breaks[1]).*((n-1)./(p.breaks[end]-p.breaks[1]))) + 1
+        ind = clamp(ind, 1, n-1)
     else
-        ind = lookup(breaks, x, 3)
+        ind = lookup(p.breaks, x, 3)
     end
 
-    z = (x-breaks[ind])./(breaks[ind+1]-breaks[ind])
+    z = (x-p.breaks[ind])./(p.breaks[ind+1]-p.breaks[ind])
     B = sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
     return B, x
+
+end
+
+function evalbase(p::LinParams, x, order::AbstractArray{Int})
+    out = Array(SparseMatrixCSC{Float64,Int}, size(order))
+
+    for I in eachindex(order)
+        out[I] = evalbase(p, x, order[I])
+    end
+    return out, x
 end
