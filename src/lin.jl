@@ -99,7 +99,10 @@ function evalbase(p::LinParams, x=nodes(p), order::Int=0)
         ind = lookup(p.breaks, x, 3)
     end
 
-    z = (x-p.breaks[ind])./(p.breaks[ind+1]-p.breaks[ind])
+    z = similar(x)
+    for I in eachindex(z)
+        z[I] = (x[I]-p.breaks[ind[I]])./(p.breaks[ind[I]+1]-p.breaks[ind[I]])
+    end
 
     # TODO: figure out how to avoid the vcats and the sparse(I, J, V) call
     B = sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
