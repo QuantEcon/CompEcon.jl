@@ -106,10 +106,7 @@ function _chk_evalbase(p::SplineParams, x, order)
     n, m, minorder, augbreaks, ind
 end
 
-function evalbase(p::SplineParams, x=nodes(p), order::Int=0)
-    B, x = evalbase(p, x, [order])
-    B[1], x
-end
+evalbase(p::SplineParams, x=nodes(p), order::Int=0) = evalbase(p, x, [order])[1]
 
 """
 Evaluate spline basis matrices for a certain order derivative at x
@@ -177,5 +174,5 @@ function evalbase(p::SplineParams, x, order::AbstractVector{Int})
         end
     end
 
-    B, x
+    B
 end

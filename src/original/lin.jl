@@ -19,5 +19,7 @@ function lindop(breaks, evennum, order)
 end
 
 # linbase.m -- DONE
-linbase(breaks, evennum=0, x=breaks, order=0) =
-    evalbase(LinParam(breaks, evennum), x, order)
+function linbase(breaks, evennum=0, x=breaks, order=0)
+    B = evalbase(LinParam(breaks, evennum), x, order)
+    B, x
+end

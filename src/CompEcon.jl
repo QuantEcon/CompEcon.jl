@@ -10,11 +10,6 @@ TODO: also need splidop, lindop
 TODO: funeval fails for scalar input and does weird thing for 1-element
       vector input
 
-TODO: remove the x return value for evalbase
-TODO: Simplify API by only allowing `order` in evalbase to be Int. Then we get
-type stability in the first (soon to be only) return argument. We could
-implement another method that expects `order=Vector`
-
 TODO: rethink the `order::Matrix` thing. Maybe a convention we can adopt is
 the following:
 

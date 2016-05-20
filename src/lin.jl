@@ -65,9 +65,9 @@ function derivative_op(p::LinParams, order::Int=1)
         #adjustment to make value at original left endpoint equal 0
         if evennum > 0
             temp = evalbase(LinParams(newbreaks, length(newbreaks)),
-                            breaks[1], 0)[1]*D[-i]
+                            breaks[1], 0)*D[-i]
         else
-            temp = evalbase(LinParams(newbreaks, 0), breaks[1], 0)[1]*D[-i]
+            temp = evalbase(LinParams(newbreaks, 0), breaks[1], 0)*D[-i]
         end
         D[-i] = D[-i]-repmat(temp, length(newbreaks), 1)
     end
@@ -82,8 +82,8 @@ function evalbase(p::LinParams, x=nodes(p), order::Int=0)
     # 46-49
     if order != 0
         D, params = derivative_op(p, order)
-        B = evalbase(params, x, 0)[1] * D[end]
-        return B, x
+        B = evalbase(params, x, 0) * D[end]
+        return B
     end
 
     m = size(x, 1)
@@ -103,7 +103,7 @@ function evalbase(p::LinParams, x=nodes(p), order::Int=0)
 
     # TODO: figure out how to avoid the vcats and the sparse(I, J, V) call
     B = sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
-    return B, x
+    return B
 
 end
 
@@ -113,5 +113,5 @@ function evalbase(p::LinParams, x, order::AbstractArray{Int})
     for I in eachindex(order)
         out[I] = evalbase(p, x, order[I])
     end
-    return out, x
+    return out
 end

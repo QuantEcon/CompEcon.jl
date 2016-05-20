@@ -88,7 +88,7 @@ function evalbase(p::ChebParams, x=nodes(p, 1), order::Int=0, nodetype::Int=1)
         B = bas
     end
 
-    return B, x
+    return B
 end
 
 function evalbase(p::ChebParams, x, order::AbstractVector{Int}, nodetype::Int=1)
@@ -118,7 +118,7 @@ function evalbase(p::ChebParams, x, order::AbstractVector{Int}, nodetype::Int=1)
         end
     end
 
-    return B, x
+    return B
 end
 
 function evalbasex(p::ChebParams, x)
