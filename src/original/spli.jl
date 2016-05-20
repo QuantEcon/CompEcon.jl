@@ -13,9 +13,12 @@ splinode(breaks::Vector, evennum::Int, k::Int=3) =
     nodes(SplineParams(breaks, evennum, k))
 
 
-# splidop.m
-splidop(breaks, evennum=0, k=3, order=1) =
-    derivative_op(SplineParams(breaks, evennum, k), order)
+function splidop(breaks, evennum=0, k=3, order=1)
+    D, p = derivative_op(SplineParams(breaks, evennum, k), order)
+    n = length(breaks) + k - 1
+
+    D, n-order, breaks[1], breaks[end], Any[breaks, evennum, k-order]
+end
 
 # splibas.m -- DONE
 splibase(breaks::Vector, evennum, k=3, x=splinode(breaks, evennum, k),
