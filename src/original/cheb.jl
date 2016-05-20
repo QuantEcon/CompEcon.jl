@@ -21,8 +21,10 @@ end
 
 
 # chebbase.m -- DONE
-chebbase(n, a, b, x=chebnode(n, a, b, 1), order=0, nodetype=1) =
-    evalbase(ChebParams(n, a, b), x, order, nodetype)
+function chebbase(n, a, b, x=chebnode(n, a, b, 1), order=0, nodetype=1)
+    B = evalbase(ChebParams(n, a, b), x, order, nodetype)
+    B, x
+end
 
 # chebbasex.m -- DONE
 chebbasex(n, a, b, x) = evalbasex(ChebParams(n, a, b), x)

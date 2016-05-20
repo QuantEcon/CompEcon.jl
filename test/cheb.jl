@@ -78,7 +78,7 @@ facts("test Cheb") do
     end
 
     context("test evalbase") do
-        B, x = @inferred CompEcon.evalbase(params,nod,0,0)
+        B = @inferred CompEcon.evalbase(params,nod,0,0)
         @fact  B --> roughly(mB, atol = 1e-14)
     end
 

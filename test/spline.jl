@@ -16,8 +16,8 @@ facts("Test Spline Basis Evaluation") do
 
     x = rand(10000)
 
-    basestr = @inferred CompEcon.evalbase(params,x)
-    base = full(basestr[1])
+    basestr = @inferred CompEcon.evalbase(params, x)
+    base = full(basestr)
 
     # vector of basis functions
 

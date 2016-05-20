@@ -21,5 +21,8 @@ function splidop(breaks, evennum=0, k=3, order=1)
 end
 
 # splibas.m -- DONE
-splibase(breaks::Vector, evennum, k=3, x=splinode(breaks, evennum, k),
-        order=0) = evalbase(SplineParams(breaks, evennum, k), x, order)
+function splibase(breaks::Vector, evennum, k=3, x=splinode(breaks, evennum, k),
+                  order=0)
+    B = evalbase(SplineParams(breaks, evennum, k), x, order)
+    B, x
+end
