@@ -197,3 +197,8 @@ function Base.(:(*)){T,I,T2}(s::SplineSparse{T,I},
     out
 
 end
+
+# TODO: implement me for real to avoid conversion to CSC
+function Base.(:(\))(s::SplineSparse, x::Union{AbstractVector,AbstractMatrix})
+    sparse(s) \ x
+end
