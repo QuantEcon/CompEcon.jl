@@ -3,19 +3,19 @@ immutable SplineSparse{T,I} <: Base.SparseMatrix.AbstractSparseMatrix{T,I}
     chunk_len::Int
     ncol::Int
     vals::Vector{T}
-    col::Vector{I}
+    cols::Vector{I}
 
-    function SplineSparse(n_chunks, chunk_len, ncol, vals, col)
-        if length(col)*chunk_len != length(vals)
+    function SplineSparse(n_chunks, chunk_len, ncol, vals, cols)
+        if length(cols)*chunk_len != length(vals)
             error("vals and cols not conformable")
         end
-        new(n_chunks, chunk_len, ncol, vals, col)
+        new(n_chunks, chunk_len, ncol, vals, cols)
     end
 end
 
 function SplineSparse{T,I}(N, len, ncol::Int, vals::AbstractVector{T},
-                           col::AbstractVector{I})
-    SplineSparse{T,I}(N, len, ncol, vals, col)
+                           cols::AbstractVector{I})
+    SplineSparse{T,I}(N, len, ncol, vals, cols)
 end
 
 n_chunks(s::SplineSparse) = s.n_chunks
@@ -35,7 +35,7 @@ function Base.full{T}(s::SplineSparse{T})
 
     for row in 1:nrow
         for chunk in 1:s.n_chunks
-            first_col = s.col[col_ix(s, row, chunk)]
+            first_col = s.cols[col_ix(s, row, chunk)]
             @simd for n in 1:s.chunk_len
                 out[row, first_col+n-1] = s.vals[val_ix(s, row, chunk, n)]
             end
@@ -52,7 +52,7 @@ function Base.findnz{T,I}(s::SplineSparse{T,I})
 
     for row in 1:nrow
         for chunk in 1:s.n_chunks
-            first_col = s.col[col_ix(s, row, chunk)]
+            first_col = s.cols[col_ix(s, row, chunk)]
             for n in 1:s.chunk_len
                 cols[val_ix(s, row, chunk, n)] = first_col+n-1
             end
@@ -69,17 +69,17 @@ end
 
 Base.sparse(s::SplineSparse) = convert(SparseMatrixCSC, s)
 
-function Base.getindex{T}(s::SplineSparse{T}, row::Integer, col::Integer)
-    first_cols = s.col[row]
+function Base.getindex{T}(s::SplineSparse{T}, row::Integer, cols::Integer)
+    first_cols = s.cols[row]
 
     for chunk in 1:s.n_chunks
-        first_col = s.col[col_ix(s, row, chunk)]
+        first_col = s.cols[col_ix(s, row, chunk)]
 
-        if col < first_col || col > (first_col + s.chunk_len-1)
+        if cols < first_col || cols > (first_col + s.chunk_len-1)
             continue
         end
 
-        n = col-first_col+1
+        n = cols-first_col+1
         return s.vals[val_ix(s, row, chunk, n)]
 
     end
@@ -113,22 +113,22 @@ function row_kron{T1,I1,T2,I2}(s1::SplineSparse{T1,I1}, s2::SplineSparse{T2,I2})
     T = promote_type(T1, T2)
     I = promote_type(I1, I2)
 
-    col = Array(I, N*nrow)
+    cols = Array(I, N*nrow)
     vals = Array(T, N*len*nrow)
 
     ix = 0
     c_ix = 0
     @inbounds for row in 1:nrow
         for chunk1 in 1:N1
-            first_col1 = s1.col[col_ix(s1, row, chunk1)]
+            first_col1 = s1.cols[col_ix(s1, row, chunk1)]
 
             for n1 in 1:len1
                 v1 = s1.vals[val_ix(s1, row, chunk1, n1)]
 
                 for chunk2 in 1:N2
-                    first_col2 = s2.col[col_ix(s2, row, chunk2)]
+                    first_col2 = s2.cols[col_ix(s2, row, chunk2)]
 
-                    col[c_ix+=1] = (first_col1+n1-2)*s2.ncol+first_col2
+                    cols[c_ix+=1] = (first_col1+n1-2)*s2.ncol+first_col2
 
                     @simd for n2 in 1:len2
                         vals[ix+=1] = v1*s2.vals[val_ix(s2, row, chunk2, n2)]
@@ -138,7 +138,7 @@ function row_kron{T1,I1,T2,I2}(s1::SplineSparse{T1,I1}, s2::SplineSparse{T2,I2})
         end
     end
 
-    SplineSparse(N, len, s1.ncol*s2.ncol, vals, col)
+    SplineSparse(N, len, s1.ncol*s2.ncol, vals, cols)
 
 end
 
@@ -152,7 +152,7 @@ function Base.(:(*)){T,I,T2}(s::SplineSparse{T,I},
     @inbounds for row in eachindex(out)
         val = zero(out_T)
         for chunk in 1:s.n_chunks
-            first_col = s.col[col_ix(s, row, chunk)]
+            first_col = s.cols[col_ix(s, row, chunk)]
 
             @simd for n in 1:s.chunk_len
                 val += s.vals[val_ix(s, row, chunk, n)] * v[first_col+(n-1)]
