@@ -78,7 +78,7 @@ function derivative_op(p::LinParams, order::Int=1)
 
 end
 
-function evalbase(p::LinParams, x=nodes(p), order::Int=0)
+function evalbase{T}(p::LinParams, x::AbstractArray{T}=nodes(p), order::Int=0, csc::Bool=true)
     # 46-49
     if order != 0
         D, params = derivative_op(p, order)
@@ -99,14 +99,24 @@ function evalbase(p::LinParams, x=nodes(p), order::Int=0)
         ind = lookup(p.breaks, x, 3)
     end
 
-    z = similar(x)
-    for I in eachindex(z)
-        z[I] = (x[I]-p.breaks[ind[I]])./(p.breaks[ind[I]+1]-p.breaks[ind[I]])
-    end
+    if !csc
 
-    # TODO: figure out how to avoid the vcats and the sparse(I, J, V) call
-    B = sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
-    return B
+        z = similar(x, 2*length(x))
+        for i in 1:length(x)
+            ix = 2i
+            z[ix] = (x[i]-p.breaks[ind[i]])./(p.breaks[ind[i]+1]-p.breaks[ind[i]])
+            z[ix-1] = 1 - z[ix]
+        end
+
+        return SplineSparse{1,2,T,Int}(n, ind, z)
+    else
+        z = similar(x)
+        for i in 1:length(x)
+            z[i] = (x[i]-p.breaks[ind[i]])./(p.breaks[ind[i]+1]-p.breaks[ind[i]])
+        end
+
+        return sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
+    end
 
 end
 

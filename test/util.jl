@@ -82,4 +82,23 @@ facts("test CompEcon.ckronx") do
     @fact funeval(c, bs, [0 0]) --> roughly(y; atol=1e-14)
 end
 
+facts("test row_kron") do
+    h = ["a" "b"; "c" "d"]
+    z = ["1" "2" "3"; "4" "5" "6"]
+    want = ["a1" "a2" "a3" "b1" "b2" "b3"; "c4" "c5" "c6" "d4" "d5" "d6"]
+    @fact row_kron(h, z) --> want
+
+    # now test on some bigger matrices
+    a = randn(400, 3)
+    b = randn(400, 5)
+    out = row_kron(a, b)
+    @fact size(out) --> (400, 15)
+
+    rows_good = true
+    for row=1:400
+        rows_good &= out[row, :] == kron(a[row, :], b[row, :])
+    end
+    @fact rows_good --> true
+end
+
 end  # module

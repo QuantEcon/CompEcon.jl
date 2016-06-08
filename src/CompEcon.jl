@@ -81,7 +81,7 @@ export bisect, brenth, brent, ridder, expand_bracket, divide_bracket
 export BasisFamily, Cheb, Lin, Spline, Basis,
        BasisParams, ChebParams, LinParams, SplineParams,
        AbstractBasisStructureRep, Tensor, Expanded, Direct,
-       BasisStructure, Interpoland
+       BasisStructure, Interpoland, SplineSparse
 
 # functions
 export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
@@ -90,7 +90,7 @@ export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
 
 # quad
 export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
-       qnwunif, qnwlogn, qnwgh, qnwmonomial,
+       qnwunif, qnwlogn, qnwgh, qnwmonomial, qnwmonomial1, qnwmonomial2,
        quadrect,
        gridmake,
        do_quad
@@ -100,7 +100,9 @@ export complete_polynomial, complete_polynomial!, n_complete
 
 include("util.jl")
 include("zeros.jl")
+include("quad.jl")
 include("optimization.jl")
+include("spline_sparse.jl")
 include("basis.jl")
 include("basis_structure.jl")
 include("interp.jl")
