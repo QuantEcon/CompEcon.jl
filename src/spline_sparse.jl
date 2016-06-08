@@ -142,15 +142,9 @@ function row_kron{T1,I1,T2,I2}(s1::SplineSparse{T1,I1}, s2::SplineSparse{T2,I2})
 
 end
 
-function Base.(:(*)){T,I,T2}(s::SplineSparse{T,I},
-                             v::AbstractVector{T2})
-    size(s, 2) == size(v, 1) || throw(DimensionMismatch())
-
-    out_T = promote_type(T, T2)
-    out = Array(out_T, size(s, 1))
-
+function matvec!{T}(out::AbstractVector{T}, s::SplineSparse, v::AbstractVector)
     @inbounds for row in eachindex(out)
-        val = zero(out_T)
+        val = zero(T)
         for chunk in 1:s.n_chunks
             first_col = s.cols[col_ix(s, row, chunk)]
 
@@ -160,6 +154,44 @@ function Base.(:(*)){T,I,T2}(s::SplineSparse{T,I},
         end
 
         out[row] = val
+    end
+    out
+end
+
+function Base.(:(*)){T,I,T2}(s::SplineSparse{T,I},
+                             v::AbstractVector{T2})
+    size(s, 2) == size(v, 1) || throw(DimensionMismatch())
+
+    out_T = promote_type(T, T2)
+    out = Array(out_T, size(s, 1))
+    matvec!(out, s, v)
+end
+
+
+function Base.(:(*)){T,I,T2}(s::SplineSparse{T,I},
+                             m::AbstractMatrix{T2})
+    size(s, 2) == size(m, 1) || throw(DimensionMismatch())
+
+    out_T = promote_type(T, T2)
+    out = Array(out_T, size(s, 1), size(m, 2))
+
+    @inbounds for row in 1:size(s, 1)
+        vals = zeros(out_T, size(m, 2))
+        for chunk in 1:s.n_chunks
+            first_col = s.cols[col_ix(s, row, chunk)]
+
+            for n in 1:s.chunk_len
+                s_val = s.vals[val_ix(s, row, chunk, n)]
+                s_col = first_col+(n-1)
+
+                for m_col in 1:size(m, 2)
+                    vals[m_col] += s_val * m[s_col, m_col]
+                end
+
+            end
+        end
+
+        out[row, :] = vals
     end
 
     out
