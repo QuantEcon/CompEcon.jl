@@ -96,7 +96,7 @@ Base.size(s::SplineSparse, i::Integer) = i == 1 ? _nrows(s) :
 function row_kron{T1,I1,T2,I2}(s1::SplineSparse{T1,I1}, s2::SplineSparse{T2,I2})
 
     nrow = _nrows(s1)
-    _nrows(s1) == nrow || error("s1 and s2 must have same number of rows")
+    _nrows(s2) == nrow || error("s1 and s2 must have same number of rows")
     N1 = s1.n_chunks
     len1 = s1.chunk_len
     N2 = s2.n_chunks
