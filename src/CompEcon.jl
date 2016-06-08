@@ -90,7 +90,7 @@ export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
 
 # quad
 export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
-       qnwunif, qnwlogn, qnwgh, qnwmonomial,
+       qnwunif, qnwlogn, qnwgh, qnwmonomial1, qnwmonomial2,
        quadrect,
        gridmake,
        do_quad
@@ -104,6 +104,7 @@ include("optimization.jl")
 include("basis.jl")
 include("basis_structure.jl")
 include("interp.jl")
+include("quad.jl")
 
 # include the rest of the original API
 include("original.jl")
@@ -112,7 +113,6 @@ include("original.jl")
 include("cheb.jl")
 include("spline.jl")
 include("lin.jl")
-# include("complete.jl")
 
 # include comlpete
 include("complete.jl")
