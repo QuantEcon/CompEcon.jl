@@ -8,11 +8,11 @@ using FactCheck
 facts("Test SplineSparse") do
 
     context("full") do
-        s = SplineSparse{1,2,Int,Int}(3, [1, 2], [1, 2, 3, 4])
+        s = SplineSparse(1, 2, 3, 1:4, 1:2)
         want = [1 2 0; 0 3 4]
         @fact full(s) --> want
 
-        s = SplineSparse{2,2,Int,NTuple{2,Int}}(6, [(1, 5), (2, 4)], 1:8)
+        s = SplineSparse(2, 2, 6, 1:8, [1, 5, 2, 4])
         want = [1 2 0 0 3 4
                 0 5 6 7 8 0]
 
@@ -20,8 +20,8 @@ facts("Test SplineSparse") do
     end
 
     context("row_kron") do
-        s1 = SplineSparse{1,2,Int,Int}(3, rand(1:2, 6), rand(1:10, 12))
-        s2 = SplineSparse{1,2,Int,Int}(4, rand(1:3, 6), rand(1:10, 12))
+        s1 = SplineSparse(1,2, 3, rand(1:10, 12), rand(1:2, 6))
+        s2 = SplineSparse(1,2, 4, rand(1:10, 12), rand(1:3, 6))
         want = row_kron(full(s1), full(s2))
         s12 = row_kron(s1, s2)
 
@@ -31,8 +31,8 @@ facts("Test SplineSparse") do
 
         Base.zero(::Type{ASCIIString}) = ""
 
-        s1 = SplineSparse{1,2,ASCIIString,Int}(2, [1, 1], ["a", "b", "c", "d"])
-        s2 = SplineSparse{1,3,ASCIIString,Int}(3, [1, 1], map(string, 1:6))
+        s1 = SplineSparse(1,2, 2, ["a", "b", "c", "d"], [1, 1])
+        s2 = SplineSparse(1,3, 3, map(string, 1:6), [1, 1])
 
         want = ["a1" "a2" "a3" "b1" "b2" "b3"
                 "c4" "c5" "c6" "d4" "d5" "d6"]
@@ -43,7 +43,7 @@ facts("Test SplineSparse") do
     end
 
     context("getindex") do
-        s = SplineSparse{1,2,Float64,Int}(10, rand(1:9, 6), rand(12))
+        s = SplineSparse(1, 2, 10, rand(12), rand(1:9, 6))
         full_s = full(s)
 
         for r in 1:size(s, 1)
@@ -54,10 +54,10 @@ facts("Test SplineSparse") do
     end
 
     context("*") do
-        s1 = SplineSparse{1,2,Int,Int}(3, [1, 2], 1:4)
-        s2 = SplineSparse{1,3,Int,Int}(4, [2, 1], 1:6)
-        s12 = SplineSparse{2,3,Int,NTuple{2,Int}}(12, [(2, 6), (5, 9)],
-                            [1, 2, 3, 2, 4, 6, 12, 15, 18, 16, 20, 24])
+        s1 =  SplineSparse(1, 2, 3, 1:4, [1, 2])
+        s2 =  SplineSparse(1, 3, 4, 1:6, [2, 1])
+        s12 = SplineSparse(2, 3, 12, [1, 2, 3, 2, 4, 6, 12, 15, 18, 16, 20, 24],
+                           [2, 6, 5, 9])
 
         x1 = rand(3)
         x2 = rand(4)
