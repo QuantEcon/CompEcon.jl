@@ -2,7 +2,7 @@
 module TestCheb
 
 # include instead of `using` so it updates when I reload the module
-include(Pkg.dir("CompEcon", "src", "CompEcon.jl"))
+include(joinpath(dirname(@__FILE__), "..", "src", "CompEcon.jl"))
 using Base.Test
 using FactCheck
 
