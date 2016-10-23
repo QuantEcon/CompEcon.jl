@@ -78,14 +78,18 @@ function derivative_op(p::LinParams, order::Int=1)
 
 end
 
-function evalbase(p::LinParams, x=nodes(p), order::Int=0)
-    # 46-49
-    if order != 0
-        D, params = derivative_op(p, order)
-        B = evalbase(params, x, 0) * D[end]
-        return B
+function _prep_evalbase(p::LinParams, x::Real)
+    n = length(p.breaks)
+    if p.evennum != 0
+        _ind = fix((x-p.breaks[1])*((n-1)/(p.breaks[end]-p.breaks[1])))
+        ind = clamp(_ind+1, 1, n-1)
+    else
+        ind = lookup(p.breaks, x, 3)
     end
+    1, n, [ind]
+end
 
+function _prep_evalbase(p::LinParams, x::AbstractArray)
     m = size(x, 1)
     n = length(p.breaks)
 
@@ -99,16 +103,48 @@ function evalbase(p::LinParams, x=nodes(p), order::Int=0)
         ind = lookup(p.breaks, x, 3)
     end
 
-    z = similar(x)
-    for I in eachindex(z)
-        z[I] = (x[I]-p.breaks[ind[I]])./(p.breaks[ind[I]+1]-p.breaks[ind[I]])
+    return m, n, ind
+end
+
+function evalbase(::Type{SparseMatrixCSC}, p::LinParams,
+                  x::Union{Real,AbstractArray}=nodes(p), order::Int=0)
+    # 46-49
+    if order != 0
+        D, params = derivative_op(p, order)
+        B = evalbase(params, x, 0) * D[end]
+        return B
     end
 
-    # TODO: figure out how to avoid the vcats and the sparse(I, J, V) call
-    B = sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
-    return B
+    m, n, ind = _prep_evalbase(p, x)
+    z = similar(x)
+    for i in 1:length(x)
+        z[i] = (x[i]-p.breaks[ind[i]])/(p.breaks[ind[i]+1]-p.breaks[ind[i]])
+    end
 
+    return sparse(vcat(1:m, 1:m), vcat(ind, ind+1), vcat(1-z, z), m, n)
 end
+
+function evalbase(::Type{SplineSparse}, p::LinParams,
+                  x::Union{Real,AbstractArray}=nodes(p), order::Int=0)
+    # 46-49
+    if order != 0
+        error("derivatives un-supported right now")
+    end
+
+    m, n, ind = _prep_evalbase(p, x)
+
+    z = Array(eltype(x), 2*length(x))
+    for i in 1:length(x)
+        ix = 2i
+        z[ix] = (x[i]-p.breaks[ind[i]])/(p.breaks[ind[i]+1]-p.breaks[ind[i]])
+        z[ix-1] = 1 - z[ix]
+    end
+
+    return SplineSparse(1, 2, n, z, ind)
+end
+
+evalbase(p::LinParams, x::Union{Real,AbstractArray}=nodes(p), order::Int=0) =
+    evalbase(SparseMatrixCSC, p, x, order)
 
 function evalbase(p::LinParams, x, order::AbstractArray{Int})
     out = Array(SparseMatrixCSC{Float64,Int}, size(order))

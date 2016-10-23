@@ -1,11 +1,4 @@
-# Tests spline basis evaluation function
-module TestSpline
-
-using CompEcon
-using Base.Test
-using FactCheck
-
-facts("Test Spline Basis Evaluation") do
+@testset "Test Spline Basis Evaluation" begin
 
     # constuct specific case that we can compute by hand
 
@@ -51,11 +44,7 @@ facts("Test Spline Basis Evaluation") do
 
     end
 
-    context("test evalbase with linear B spline") do
-        @fact manualbase == base --> true
-
+    @testset "test evalbase with linear B spline" begin
+        @test  manualbase  ==  base
     end
-
-end
-
 end

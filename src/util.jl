@@ -3,9 +3,9 @@
 # ---------------- #
 
 # ckronx.m -- DONE
-function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
-                                    ind::Matrix{Int}=reshape(1:length(b),
-                                                             1, length(b)))
+function ckronx{TM<:AbstractMatrix}(b::AbstractMatrix{TM}, c::Array,
+                                    ind::AbstractMatrix{Int}=reshape(1:length(b),
+                                                                     1, length(b)))
     d = length(ind)  # 26
     n = Array(Int, d)  # 27
     for i=1:d  # 28
@@ -26,6 +26,11 @@ function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
         mm = mm * size(z, 1)  # 38
     end
     z = reshape(z, mm, size(c, 2))  # 40
+end
+
+function ckronx{TM<:AbstractMatrix}(b::Matrix{TM}, c::Array,
+                                    ind::AbstractVector{Int})
+    ckronx(b, c, reshape(ind, 1, length(ind)))
 end
 
 # dprod.m  - DONE
@@ -185,17 +190,35 @@ end
 function lookup(table::Vector, x::Real, p::Int=0)
     ind = searchsortedfirst(table, x) - 1
     m = length(table)
+
     if ind == m && p >= 2
-        return m - sum(table .== table[end])
+        tosub = 1
+        @inbounds for i in m-1:-1:1
+            if table[i] == table[end]
+                tosub += 1
+            else
+                break
+            end
+        end
+        return m - tosub
     end
+
     if ind == 0 && (p == 1 || p == 3)
-        return sum(table .== table[1])
+        ix = 0
+        @inbounds for i in 1:m
+            if table[1] == table[i]
+                ix += 1
+            else
+                break
+            end
+        end
+        return ix
     end
     ind
 end
 
 # lookup.c -- DONE
-function lookup(table::Vector, x::Vector, p::Int=0)
+function lookup(table::AbstractVector, x::AbstractVector, p::Int=0)
     n = length(table)
     m = length(x)
     out = fill(42, m)

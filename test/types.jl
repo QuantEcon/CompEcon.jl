@@ -1,89 +1,80 @@
-# Tests constructors and subtype relationships
-module TestTypeSystem
-
-using CompEcon
-using Base.Test
-using FactCheck
-
 sp = SplineParams(linspace(0, 5, 10), 0, 3)
 cp = ChebParams(6, 2.0, 5.0)
 lp = LinParams(linspace(0, 5, 10), 0)
 
-facts("Test subtype structure") do
-    context("Basis families") do
+@testset "Test subtype structure" begin
+    @testset "Basis families" begin
         for T in [Cheb, Lin, Spline]
-            @fact T <: BasisFamily --> true
+            @test T <: BasisFamily
         end
     end
 
-    context("params") do
+    @testset "params" begin
         for T in [ChebParams, SplineParams, LinParams]
-            @fact T <: BasisParams --> true
+            @test T <: BasisParams
         end
     end
 
-    context("basis structure representations") do
+    @testset "basis structure representations" begin
         for T in [Tensor, Direct, Expanded]
-            @fact T <: AbstractBasisStructureRep --> true
+            @test T <: AbstractBasisStructureRep
         end
     end
 end
 
-facts("test _param method") do
+@testset "test _param method" begin
     for (T, TP) in [(Cheb, ChebParams), (Lin, LinParams), (Spline, SplineParams)]
-        @fact CompEcon._param(T) --> TP
-        @fact CompEcon._param(T()) --> TP
+        @test CompEcon._param(T) == TP
+        @test CompEcon._param(T()) == TP
     end
 end
 
-facts("Test original API compat") do
+@testset "Test original API compat" begin
 
     s = Spline()
     c = Cheb()
     l = Lin()
 
-    context("old_name for basis family") do
-        @fact Original.old_name(s) --> :spli
-        @fact Original.old_name(c) --> :cheb
-        @fact Original.old_name(l) --> :lin
+    @testset "old_name for basis family" begin
+        @test Original.old_name(s) == :spli
+        @test Original.old_name(c) == :cheb
+        @test Original.old_name(l) == :lin
     end
 
-    context("old_name for params") do
-        @fact Original.old_name(sp) --> :spli
-        @fact Original.old_name(cp) --> :cheb
-        @fact Original.old_name(lp) --> :lin
+    @testset "old_name for params" begin
+        @test Original.old_name(sp) == :spli
+        @test Original.old_name(cp) == :cheb
+        @test Original.old_name(lp) == :lin
     end
 
-    context("old_params") do
-        @fact Original.old_params(sp) --> Any[sp.breaks, sp.evennum, sp.k]
-        @fact Original.old_params(cp) --> Any[cp.n, cp.a, cp.b]
-        @fact Original.old_params(lp) --> Any[lp.breaks, lp.evennum]
+    @testset "old_params" begin
+        @test Original.old_params(sp) == Any[sp.breaks, sp.evennum, sp.k]
+        @test Original.old_params(cp) == Any[cp.n, cp.a, cp.b]
+        @test Original.old_params(lp) == Any[lp.breaks, lp.evennum]
     end
 
-    context("convert(Basis, Dict) and revert(Basis) --> Dict") do
+    @testset "convert(Basis, Dict) and revert(Basis) --> Dict" begin
         b = Basis(sp, cp)
         d = Original.revert(b)
-        @fact convert(Basis, d) --> b
+        @test convert(Basis, d) == b
     end
 
 end
 
-facts("test more Param methods") do
+@testset "test more Param methods" begin
 
-    context("Test extra outer constructors") do
-        @fact sp --> SplineParams(10, 0, 5, 3)
-        @fact lp --> LinParams(10, 0, 5)
+    @testset "Test extra outer constructors" begin
+        @test sp == SplineParams(10, 0, 5, 3)
+        @test lp == LinParams(10, 0, 5)
     end
 
-    context("test equality of params") do
-        @fact ==(sp, lp) --> false
-        @fact ==(sp, cp) --> false
-        @fact ==(cp, lp) --> false
+    @testset "test equality of params" begin
+        @test (  ==(sp, lp) ) == false
+        @test (  ==(sp, cp) ) == false
+        @test (  ==(cp, lp) ) == false
 
-        @fact ==(sp, sp) --> true
-        @fact ==(cp, cp) --> true
-        @fact ==(lp, lp) --> true
+        @test   ==(sp, sp)
+        @test   ==(cp, cp)
+        @test   ==(lp, lp)
     end
 end
-
-end  # module TestTypeSystem

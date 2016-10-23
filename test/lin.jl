@@ -1,32 +1,25 @@
-# Tests linear basis type and constructor
-module TestLin
-
-using CompEcon
-using Base.Test
-using FactCheck
-
-facts("Test Linear Basis") do
+@testset "Test Linear Basis" begin
 
     bas1 = CompEcon.Basis(CompEcon.Lin(), [0.0,4.0], 5)
 
-    context("test type") do
+    @testset "test type" begin
         bas2 = CompEcon.Basis(CompEcon.Lin(), [0.0,2.0,4.0], 5)
-        @fact bas1.params[1].breaks == [0.0,1.0,2.0,3.0,4.0] --> true
-        @fact bas2.params[1].evennum == 3 --> true
-        @fact_throws ErrorException CompEcon.Basis(CompEcon.Lin(), [0.0], 5)
-        @fact_throws ErrorException CompEcon.Basis(CompEcon.Lin(), [0.0,1.5,4.0], 5)
+        @test  bas1.params[1].breaks  ==  [0.0,1.0,2.0,3.0,4.0]
+        @test  bas2.params[1].evennum  ==  3
+        @test_throws ErrorException CompEcon.Basis(CompEcon.Lin(), [0.0], 5)
+        @test_throws ErrorException CompEcon.Basis(CompEcon.Lin(), [0.0,1.5,4.0], 5)
     end
 
-    context("test constructor") do
+    @testset "test constructor" begin
 
        valbas_lin = @inferred CompEcon.evalbase(bas1.params[1])
        valbas_spl = @inferred CompEcon.evalbase(CompEcon.SplineParams([0.0,1.0,2.0,3.0,4.0],0,1))
 
-       @fact valbas_lin == valbas_spl --> true
+       @test  valbas_lin  ==  valbas_spl
 
     end
 
-    context("test derivative") do
+    @testset "test derivative" begin
 
     	#test derivative of basis indirectly, by fitting exponential function
 		bas2 = Basis(LinParams([0,1.0],1000000))
@@ -35,10 +28,8 @@ facts("Test Linear Basis") do
 
 		d1 = funeval(coeffs,bas2,points,1)
 
-        @fact d1 --> roughly(exp(points),atol=1e-7)
+        @test_approx_eq_eps d1 exp(points) 1e-7
 
     end
-
-end
 
 end

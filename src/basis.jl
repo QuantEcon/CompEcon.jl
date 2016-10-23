@@ -126,8 +126,6 @@ function Basis(b1::Basis, bs::Basis...)
     Basis{N,BF,BP}(basistype, n, a, b, params)::Basis{N,BF,BP}
 end
 
-Base.×(b1::Basis, b2::Basis) = Basis(b1, b2)
-
 # construct basis out of multiple Params (type assertion for stability)
 Basis(p::BasisParams, ps::BasisParams...) =
     Basis(Basis(p), Basis[Basis(p) for p in ps]...)::Basis{length(ps) + 1}

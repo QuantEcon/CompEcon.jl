@@ -43,7 +43,7 @@ evalbase(b::Basis{N}, order::Matrix{Int}) => Vector{... can't remembers}
 TODO: potentially add another abstract type
       `abstract AbstractSpline <: BasisFamily` and then make
       `Lin <: AbstractSpline` and `Spline <: AbstractSpline` So I can preserve
-      the type info for the Base.SparseMatrix.SparseMatrixCSC{Float64,Int64}
+      the type info for the SparseMatrixCSC{Float64,Int64}
       TM type parameter on the `BasisStructure` for a hybrid Spline/Lin Basis
 
 =#
@@ -64,7 +64,7 @@ nodes(::PT)
 
 =#
 
-import Base: ==
+import Base: ==, *, \
 
 using QuantEcon: gridmake, gridmake!, ckron, fix, fix!, qnwlege, qnwcheb,
                  qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
@@ -73,6 +73,7 @@ using QuantEcon: gridmake, gridmake!, ckron, fix, fix!, qnwlege, qnwcheb,
 
 export Original
 export golden_method
+import Compat
 
 # zeros
 export bisect, brenth, brent, ridder, expand_bracket, divide_bracket
@@ -81,7 +82,7 @@ export bisect, brenth, brent, ridder, expand_bracket, divide_bracket
 export BasisFamily, Cheb, Lin, Spline, Basis,
        BasisParams, ChebParams, LinParams, SplineParams,
        AbstractBasisStructureRep, Tensor, Expanded, Direct,
-       BasisStructure, Interpoland
+       BasisStructure, Interpoland, SplineSparse
 
 # functions
 export old_name, nodes, revert, get_coefs, funfitxy, funfitf, funeval,
@@ -99,6 +100,7 @@ export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
 export complete_polynomial, complete_polynomial!, n_complete
 
 include("util.jl")
+include("spline_sparse.jl")
 include("zeros.jl")
 include("optimization.jl")
 include("basis.jl")

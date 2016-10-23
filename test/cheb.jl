@@ -1,11 +1,3 @@
-# Tests Cheb basis
-module TestCheb
-
-# include instead of `using` so it updates when I reload the module
-include(joinpath(dirname(@__FILE__), "..", "src", "CompEcon.jl"))
-using Base.Test
-using FactCheck
-
 params = CompEcon.ChebParams(7, 1e-4, 10.0)
 
 nod = CompEcon.nodes(params)
@@ -59,29 +51,27 @@ D = manualderiv1(nod,params.a[1],params.b[1])
 I = manualint1(nod,params.a[1],params.b[1])
 =#
 
-facts("test Cheb") do
+@testset "test Cheb" begin
 
-    context("test nodes") do
-        @fact  (nod[1] == params.a[1],nod[end] == params.b[1]) --> (false,false)
-        @fact  [nod_end[1],nod_end[end]] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
-        @fact  [nod_l[1],nod_l[end]] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
+    @testset "test nodes" begin
+        @test  (nod[1] == params.a[1],nod[end] == params.b[1]) == (false,false)
+        @test_approx_eq_eps [nod_end[1],nod_end[end]] [params.a[1],params.b[1]]  1e-15
+        @test_approx_eq_eps [nod_l[1],nod_l[end]] [params.a[1],params.b[1]]  1e-15
     end
 
-    context("test derivative/integral") do
+    @testset "test derivative/integral" begin
         deriv, params_d = CompEcon.derivative_op(params,1)
         int, params_i = CompEcon.derivative_op(params,-1)
 
-        @fact  params_d.n == params.n[1]-1 --> true
-        @fact  params_i.n == params.n[1]+1 --> true
-        @fact  [params_d.a,params_d.b] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
-        @fact  [params_i.a,params_i.b] --> roughly([params.a[1],params.b[1]], atol = 1e-15)
+        @test   params_d.n  ==  params.n[1]-1
+        @test   params_i.n  ==  params.n[1]+1
+        @test_approx_eq_eps [params_d.a,params_d.b] [params.a[1],params.b[1]] 1e-15
+        @test_approx_eq_eps [params_i.a,params_i.b] [params.a[1],params.b[1]] 1e-15
     end
 
-    context("test evalbase") do
+    @testset "test evalbase" begin
         B = @inferred CompEcon.evalbase(params,nod,0,0)
-        @fact  B --> roughly(mB, atol = 1e-14)
+        @test_approx_eq_eps B mB 1e-14
     end
 
-end  # facts
-
-end  # module
+end  # testset

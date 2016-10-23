@@ -131,8 +131,8 @@ end
 # give the type of the `vals` field based on the family type parameter of the
 # corresponding basis. `Spline` and `Lin` use sparse, `Cheb` uses dense
 # a hybrid must fall back to a generic AbstractMatrix{Float64}
-_vals_type(::Type{Spline}) = Base.SparseMatrix.SparseMatrixCSC{Float64,Int}
-_vals_type(::Type{Lin}) = Base.SparseMatrix.SparseMatrixCSC{Float64,Int}
+_vals_type(::Type{Spline}) = SparseMatrixCSC{Float64,Int}
+_vals_type(::Type{Lin}) = SparseMatrixCSC{Float64,Int}
 _vals_type(::Type{Cheb}) = Matrix{Float64}
 _vals_type(::Type{BasisFamily}) = AbstractMatrix{Float64}
 

@@ -1,10 +1,4 @@
-module TestZeros
-
 # NOTE: these tests were taken from the scipy.optimize test suite
-
-using FactCheck
-
-using CompEcon
 
 #=
 - f1 is a simple quadratic with roots 0 and 1
@@ -36,7 +30,7 @@ f6(x) = x > 1 ? rand() :
 
 funcs = [f1, f2, f3, f4, f5, f6]
 
-facts("Testing univariate root finders") do
+@testset "Testing univariate root finders" begin
 
     a = 0.5
     b = sqrt(3)
@@ -44,14 +38,12 @@ facts("Testing univariate root finders") do
     for root_finder in [bisect, brent, brenth, ridder]
         nm = string(root_finder)
 
-        context("testing $root_finder") do
+        @testset "testing $root_finder" begin
             for f in funcs
                 root = root_finder(f, a, b; xtol=0.1e-12)
-                @fact root --> roughly(1.0)
+                @test abs(root - 1.0) < 1e-11
             end
         end
     end
 
 end
-
-end  # module
