@@ -1,3 +1,4 @@
 julia 0.4
 QuantEcon
-Compat 0.9
+BasisMatrices
+Reexport
