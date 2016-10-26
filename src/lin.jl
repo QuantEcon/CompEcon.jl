@@ -4,7 +4,7 @@
 
 # lindef.m -- DONE
 function lindef(breaks::Vector, evennum::Int=0)
-    lb = Basis(Lin(), breaks, evennum)
+    lb = Basis(LinParams( breaks, evennum))
     return lb.n[1], lb.a[1], lb.b[1], Any[breaks, evennum]
 end
 

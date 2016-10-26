@@ -11,6 +11,9 @@ using QuantEcon: gridmake, gridmake!, ckron, fix, fix!, qnwlege, qnwcheb,
 
 @reexport using BasisMatrices
 
+using BasisMatrices: squeeze_trail
+import BasisMatrices: funeval, funfitxy, funfitf
+
 # old API only
 export fundef, fundefn, funnode, funbase, funbasex, funeval, funbconv,
        chebdef, chebnode, chebbase, chebbasex, chebdop,

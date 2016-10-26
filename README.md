@@ -3,10 +3,7 @@
 [![Build Status](https://travis-ci.org/QuantEcon/CompEcon.jl.svg?branch=master)](https://travis-ci.org/QuantEcon/CompEcon.jl) [![codecov.io](http://codecov.io/github/QuantEcon/CompEcon.jl/coverage.svg?branch=master)](http://codecov.io/github/QuantEcon/CompEcon.jl?branch=master) [![Coverage Status](https://coveralls.io/repos/QuantEcon/CompEcon.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/QuantEcon/CompEcon.jl?branch=master)
 
 
-
-### Matlab-esque interface
-
-This package is a wrapper around [BasisMatrices.jl](https://github.com/QuantEcon/BasisMatrices.jl) and provides an API similar to the original [CompEcon matlab library](http://www4.ncsu.edu/~pfackler/compecon/toolbox.html) by Miranda and Fackler.
+This package is a wrapper around [BasisMatrices.jl](https://github.com/QuantEcon/BasisMatrices.jl) and provides an API similar to the original [CompEcon matlab library](http://www4.ncsu.edu/~pfackler/compecon/toolbox.html) by Miranda and Fackler. For best use of the underlying routines, we recommend using the BasisMatrices.jl API.
 
 The Matlab style API here is as close to the original library as possible (differences are based mostly on syntax). To see what this means, consider the following Matlab example (taken from `demapp01.m`):
 
@@ -72,7 +69,7 @@ c = funfitf(basis, f)
 # function values y and use funfitxy:
 x = funnode(basis)[1]
 y = f(x)
-c = funfitxy(basis, x, y)
+c = funfitxy(basis, x, y)[1]
 
 # ... or one compute the standard approximation nodes x, corresponding
 # function values y, and the interpolation matrix phi, and solve the

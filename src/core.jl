@@ -19,7 +19,7 @@ basenode(s::Symbol, args...) =
     s == :lin  ? linnode(args...)  :
     error("somehow you snuck through here you 👺")
 
-evalbase(s::Symbol, args...) =
+BasisMatrices.evalbase(s::Symbol, args...) =
     s == :spli ? splibase(args...) :
     s == :cheb ? chebbase(args...) :
     s == :lin  ? linbase(args...)  :
@@ -36,7 +36,7 @@ function fundef(foo...)
     n = zeros(Int, d)  # 93
     b = zeros(d)  # 94
     a = zeros(d)  # 95
-    p = cell(d)  # 96
+    p = Array{Any}(d)  # 96
 
     basetype = Array(Symbol, d)
     for j=1:d
@@ -65,7 +65,7 @@ function fundefn(basistype::Symbol, n, a, b, order=3)
     any(a .> b) && error("left endpoints must be less than right endpoints")
     any(n .< 2) && error("n(i) must be greater than 1")
 
-    params = cell(1, d)
+    params = Array{Any}(1, d)
     if basistype == :cheb
         for i=1:d params[i] = Any[:cheb, n[i], a[i], b[i]] end
     elseif basistype == :spli
@@ -84,7 +84,7 @@ function funnode(basis::Dict)
         xcoord = basenode(basis[:basetype][1], basis[:params][1]...)  # 20
         x = xcoord  # 21
     else  # 22
-        xcoord = cell(d)  # 23
+        xcoord = Array{Any}(d)  # 23
         for j=1:d  # 24
             xcoord[j] = basenode(basis[:basetype][j], basis[:params][j]...)  #25
         end  # 26
@@ -121,7 +121,7 @@ function funbasex(basis::Dict{Symbol}, x=funnode(basis)[1], order=0,
     B = Dict{Symbol, Any}()  # 76
     B[:order] = minorder
     B[:format] = bformat
-    B[:vals] = cell(maximum(numbases), d)  # 77
+    B[:vals] = Array{Any}(maximum(numbases), d)  # 77
 
     # 83-89
     if bformat == :none
@@ -135,7 +135,7 @@ function funbasex(basis::Dict{Symbol}, x=funnode(basis)[1], order=0,
     # 91-101
     if d > 1
         if !(isa(x, Array{Any})) && bformat == :tensor
-            error("Must pass a cell array to form a tensor format basis")
+            error("Must pass a Array{Any} array to form a tensor format basis")
         end
         if isa(x, Array{Any}) && bformat == :direct
             # it would be more efficient in this case to
@@ -360,8 +360,8 @@ function funeval3(c, B, order=fill(0, 0, 0))
 
             length(ii) > 1 &&  warn("redundant request in funeval3")  # 145
 
-            # NOTE: must do even when length[i] == 1 b/c want element of cell
-            #       and indexing cell with vector in julia gives cell instead
+            # NOTE: must do even when length[i] == 1 b/c want element of Array{Any}
+            #       and indexing Array{Any} with vector in julia gives Array{Any} instead
             #       of the element
             ii = ii[1]  # 146
 
@@ -404,7 +404,7 @@ function funbconv(b, order=fill(0, 1, size(b[:order], 2)),
 
     B = Dict{Symbol, Any}()
     if format == :expanded
-        B[:vals] = cell(numbas)
+        B[:vals] = Array{Any}(numbas)
         B[:order] = order
         B[:format] = format
 
@@ -443,10 +443,10 @@ function funbconv(b, order=fill(0, 1, size(b[:order], 2)),
         end
 
     elseif format == :direct && b[:format] == :tensor
-        B[:vals] = cell(numbas, d)  # 75
+        B[:vals] = Array{Any}(numbas, d)  # 75
         B[:order] = order  # 76
         B[:format] = format  # 77
-        ind = cell(1, d)  # 78
+        ind = Array{Any}(1, d)  # 78
 
         for j=1:d, i=1:size(b[:vals], 1)
             if !(isempty(b[:vals][i, j]))  # 81

@@ -4,7 +4,7 @@
 
 # chebdef.m -- DONE
 function chebdef(n::Int, a::Real, b::Real)
-    cb = Basis(Cheb(), n, a, b)
+    cb = Basis(ChebParams(n, a, b))
     return cb.n[1], cb.a[1], cb.b[1], Any[n, a, b]
 end
 

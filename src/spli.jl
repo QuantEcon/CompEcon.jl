@@ -4,7 +4,7 @@
 
 # splidef.m -- DONE
 function splidef(breaks, evennum=0, k::Int=3)
-    sb = Basis(Spline(), breaks, evennum, k)
+    sb = Basis(SplineParams(breaks, evennum, k))
     return sb.n[1], sb.a[1], sb.b[1], Any[breaks, evennum, k]
 end
 
