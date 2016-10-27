@@ -1,15 +1,16 @@
 language: julia
 julia:
-    - release
+    - 0.4
+    - 0.5
     - nightly
 matrix:
   allow_failures:
     - julia: nightly
 notifications:
     email: false
-script:
-    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia -e 'Pkg.clone(pwd()); Pkg.build("CompEcon")'
-    - julia -e 'Pkg.test("CompEcon", coverage=true)'
+#script:
+#    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+#    - julia -e 'Pkg.clone(pwd()); Pkg.build("CompEcon")'
+#    - julia -e 'Pkg.test("CompEcon", coverage=true)'
 after_success:
     - julia -e 'cd(Pkg.dir("CompEcon")); Pkg.add("Coverage"); using Coverage; proc = process_folder(); Coveralls.submit(proc); Codecov.submit(proc)'
