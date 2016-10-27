@@ -1,7 +1,12 @@
-# CompEcon
-
 [![Build Status](https://travis-ci.org/QuantEcon/CompEcon.jl.svg?branch=master)](https://travis-ci.org/QuantEcon/CompEcon.jl) [![codecov.io](http://codecov.io/github/QuantEcon/CompEcon.jl/coverage.svg?branch=master)](http://codecov.io/github/QuantEcon/CompEcon.jl?branch=master) [![Coverage Status](https://coveralls.io/repos/QuantEcon/CompEcon.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/QuantEcon/CompEcon.jl?branch=master)
 
+This package is a Julia implementation of the routines originally contained in the CompEcon Matlab toolbox](http://www4.ncsu.edu/~pfackler/compecon/toolbox.html) by Paul Fackler and Mario Miranda. The original Matlab code was written to accompany the publication
+
+> Miranda, Mario J., and Paul L. Fackler. Applied computational economics and finance. MIT press, 2004.
+
+This work is derivative of their work and has been licensed with their permission.
+
+# CompEcon
 
 This package is a wrapper around [BasisMatrices.jl](https://github.com/QuantEcon/BasisMatrices.jl) and provides an API similar to the original [CompEcon matlab library](http://www4.ncsu.edu/~pfackler/compecon/toolbox.html) by Miranda and Fackler. For best use of the underlying routines, we recommend using the BasisMatrices.jl API.
 
