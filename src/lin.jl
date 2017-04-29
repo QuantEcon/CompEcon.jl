@@ -3,9 +3,15 @@
 # ------------ #
 
 # lindef.m -- DONE
-function lindef(breaks::Vector, evennum::Int=0)
-    lb = Basis(LinParams( breaks, evennum))
-    return lb.n[1], lb.a[1], lb.b[1], Any[breaks, evennum]
+function lindef(breaks::AbstractVector, evennum::Int=0)
+    p = LinParams(breaks, evennum)
+    return (
+        length(p.breaks),
+        minimum(p.breaks),
+        maximum(p.breaks),
+        Any[p.breaks, evennum],
+        p
+    )
 end
 
 # linnode.m -- DONE

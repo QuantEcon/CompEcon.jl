@@ -36,17 +36,18 @@ old_params(p::SplineParams) = Any[p.breaks, p.evennum, p.k]
 function Base.convert(::Type{Basis}, b::Dict{Symbol, Any})
     btype = map(x->convert(BasisFamily, x), b[:basetype])
     param = BasisParams[convert(BasisParams, x) for x in b[:params]]
-    Basis(btype, b[:n], b[:a], b[:b], param)
+    Basis(param...)
 end
 
 # convert new API to old API
 function revert(b::Basis)
     B = Dict{Symbol, Any}()
     B[:d] = ndims(b)
-    B[:n] = b.n
-    B[:a] = b.a
-    B[:b] = b.b
-    B[:basetype] = Symbol[old_name(bt) for bt in b.basistype]
+    the_nodes = nodes.(b.params)
+    B[:n] = [length(vec) for vec in the_nodes]
+    B[:a] = [minimum(vec) for vec in the_nodes]
+    B[:b] = [maximum(vec) for vec in the_nodes]
+    B[:basetype] = Symbol[old_name(bt) for bt in b.params]
     B[:params] = Any[old_params(p) for p in b.params]
     B
 end

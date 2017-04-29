@@ -6,12 +6,10 @@ using Reexport
 
 using QuantEcon: gridmake, gridmake!, ckron, fix, fix!, qnwlege, qnwcheb,
                  qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
-                 qnwunif, qnwlogn,
-                 quadrect, do_quad
+                 qnwunif, qnwlogn, quadrect, do_quad
 
 @reexport using BasisMatrices
 
-using BasisMatrices: squeeze_trail
 import BasisMatrices: funeval, funfitxy, funfitf
 
 # old API only
@@ -19,6 +17,10 @@ export fundef, fundefn, funnode, funbase, funbasex, funeval, funbconv,
        chebdef, chebnode, chebbase, chebbasex, chebdop,
        splidef, splinode, splibase, splibasex, splidop,
        lindef, linnode, linbase, lindop
+
+# quad names
+export qnwlege, qnwcheb, qnwsimp, qnwtrap, qnwbeta, qnwgamma, qnwequi, qnwnorm,
+       qnwunif, qnwlogn, quadrect, do_quad
 
 include("core.jl")
 include("cheb.jl")
