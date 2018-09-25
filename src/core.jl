@@ -9,9 +9,9 @@ const ABSR_MAP = Dict(
     :tensor => Tensor(),
     :expanded => Expanded(),
 )
-get_bformat{T<:BasisMatrix{Direct}}(b::T) = :direct
-get_bformat{T<:BasisMatrix{Expanded}}(b::T) = :expanded
-get_bformat{T<:BasisMatrix{Tensor}}(b::T) = :tensor
+get_bformat(b::T) where T<: BasisMatrix{Direct} = :direct
+get_bformat(b::T) where T<:BasisMatrix{Expanded} = :expanded
+get_bformat(b::T) where T<:BasisMatrix{Tensor} = :tensor
 
 function to_dict(bm::BasisMatrix)
     B = Dict{Symbol, Any}()
@@ -73,10 +73,10 @@ function fundef(foo...)
     n = zeros(Int, d)  # 93
     b = zeros(d)  # 94
     a = zeros(d)  # 95
-    p = Array{Any}(d)  # 96
-    _params = Array{BasisMatrices.BasisParams}(d)
+    p = Array{Any}(undef, d)  # 96
+    _params = Array{BasisMatrices.BasisParams}(undef, d)
 
-    basetype = Array{Symbol}(d)
+    basetype = Array{Symbol}(undef, d)
     for j=1:d
         basetype[j] = foo[j][1]  # 99
         !(base_exists(basetype[j])) && error("Unknown basis $(foo[j][1])")
@@ -104,7 +104,7 @@ function fundefn(basistype::Symbol, n, a, b, order=3)
     any(a .> b) && error("left endpoints must be less than right endpoints")
     any(n .< 2) && error("n(i) must be greater than 1")
 
-    params = Array{Any}(1, d)
+    params = Array{Any}(undef, 1, d)
     if basistype == :cheb
         for i=1:d params[i] = Any[:cheb, n[i], a[i], b[i]] end
     elseif basistype == :spli

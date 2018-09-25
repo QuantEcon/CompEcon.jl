@@ -55,7 +55,7 @@ end
 # add method to funbasex that creates a BasisStructure
 function funbasex(basis::Basis, x=nodes(basis)[1], order=0,
                   bformat::BasisMatrices.ABSR=Direct())
-    BasisMatrix(Void, basis, bformat, x, order)
+    BasisMatrix(Nothing, basis, bformat, x, order)
 end
 
 funbase(basis::Basis, x=nodes(basis)[1], order=fill(0, 1, ndims(basis))) =

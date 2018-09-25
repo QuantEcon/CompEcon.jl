@@ -1,6 +1,6 @@
-sp = SplineParams(linspace(0, 5, 10), 0, 3)
+sp = SplineParams(range(0, stop = 5, length = 10), 0, 3)
 cp = ChebParams(6, 2.0, 5.0)
-lp = LinParams(linspace(0, 5, 10), 0)
+lp = LinParams(range(0, stop = 5, length = 10), 0)
 
 @testset "Test original API compat" begin
 
