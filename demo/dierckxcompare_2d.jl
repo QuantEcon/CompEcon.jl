@@ -9,8 +9,8 @@ f3(x, y) = 1.5 + log(x .* y)
 fs = [f1, f2, f3]
 nf = length(fs)
 
-x = collect(linspace(.5, 2, 35))
-y = collect(linspace(.2, 4, 35))
+x = collect(range(.5, stop=2, length=35))
+y = collect(range(.2, stop=4, length=35))
 
 function compare_D_CE_levels(f::Function, x::Array{Float64, 1}, y::Array{Float64, 1}, order::Int)
 
@@ -28,8 +28,8 @@ function compare_D_CE_levels(f::Function, x::Array{Float64, 1}, y::Array{Float64
     c, bs = funfitxy(cebasis, xx, yy)
 
     # Evaluate Splines on finer grid
-    xfine = collect(linspace(x[1], x[end], 2*n + 1))
-    yfine = collect(linspace(y[1], y[end], 2*n + 1))
+    xfine = collect(range(x[1], stop=x[end], length=2*n + 1))
+    yfine = collect(range(y[1], stop=y[end], length=2*n + 1))
     zfine = f(xfine, yfine')
 
     deval = Dierckx.evalgrid(dspl, xfine, yfine)

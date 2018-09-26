@@ -75,7 +75,7 @@ function main()
     # One may evaluate the accuracy of the Chebychev polynomial approximant by
     # computing the approximation error on a highly refined grid of points:
     ngrid = 5001                       # number of grid nodes
-    xgrid = linspace(a, b, ngrid)        # generate refined grid for plotting
+    xgrid = range(a, stop=b, length=ngrid)        # generate refined grid for plotting
 
 
     function plot_approx(f::Function, basistype::Symbol, n, a, b, xgrid, k=0)
