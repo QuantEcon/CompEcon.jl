@@ -9,7 +9,7 @@ const ABSR_MAP = Dict(
     :tensor => Tensor(),
     :expanded => Expanded(),
 )
-get_bformat(b::T) where T<: BasisMatrix{Direct} = :direct
+get_bformat(b::T) where T<:BasisMatrix{Direct} = :direct
 get_bformat(b::T) where T<:BasisMatrix{Expanded} = :expanded
 get_bformat(b::T) where T<:BasisMatrix{Tensor} = :tensor
 
