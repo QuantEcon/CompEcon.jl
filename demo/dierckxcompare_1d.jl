@@ -13,8 +13,8 @@ fs = [f1, f2, f3]
 fps = [fp1, fp2, fp3]
 nf = length(fs)
 
-x = collect(linspace(.5, 2, 35))
-finex = collect(linspace(1e-2, 2*pi - 1e-2, 150))
+x = collect(range(.5, stop=2, length=35))
+finex = collect(range(1e-2, stop=2*pi - 1e-2, length=150))
 ys = map(f->f(x), fs)
 finey = map(f->f(finex), fs)
 
@@ -32,7 +32,7 @@ function compare_D_CE_levels(f::Function, x::Array{Float64, 1}, order::Int)
     c, bs = funfitxy(cebasis, xx, yy)
 
     # Evaluate Splines on finer grid
-    xfine = collect(linspace(x[1], x[end], 2*n + 1))
+    xfine = collect(range(x[1], stop=x[end], length=2*n + 1))
     yfine = f(xfine)
 
     deval = Dierckx.evaluate(dspl, xfine)
@@ -62,7 +62,7 @@ function compare_D_CE_deriv(f::Function, fp::Function, x::Array{Float64, 1}, ord
     c, bs = funfitxy(cebasis, xx, yy)
 
     # Evaluate Splines on finer grid
-    xfine = collect(linspace(x[1], x[end], 2*n + 1))
+    xfine = collect(range(x[1], stop=x[end], length=2*n + 1))
     ypfine = fp(xfine)
 
     devalderiv = Dierckx.derivative(dspl, xfine)
