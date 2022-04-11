@@ -55,7 +55,7 @@ The corresponding Julia code is
 ```julia
 using CompEcon
 # function to approximate
-f(x) = exp(-x)
+f(x) = exp.(-x)
 
 # Set the endpoints of approximation interval:
 a =  -1                            # left endpoint
